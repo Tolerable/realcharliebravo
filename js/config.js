@@ -81,7 +81,7 @@
         "title": "About Seed Collective",
         "subtitle": "Our Story and Mission",
         "image": "img/about.jpg",
-        "description": "Founded in 2025, RealCharlieBravo Merc Shop is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.",
+        "description": "Founded in 2025, RealCharlieBravo Tactical Merc Shop is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.",
         "teamMembers": [],
         "historyItems": [],
         "additionalSections": []
