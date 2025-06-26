@@ -567,16 +567,18 @@
             targets = [];
         }
         
-        function checkWaveCompletion() {
-            const killRate = waveTargetsSpawned > 0 ? (hits / waveTargetsSpawned) * 100 : 0;
-            
-            // Need 80% kill rate and all targets spawned to advance
-            if (waveTargetsSpawned >= waveTargetsTotal && killRate >= 80) {
-                setTimeout(() => {
-                    nextWave();
-                }, 1000);
-            }
-        }
+		function checkWaveCompletion() {
+			const killRate = waveTargetsSpawned > 0 ? (hits / waveTargetsSpawned) * 100 : 0;
+			
+			// Only advance if we haven't already advanced this wave
+			if (waveTargetsSpawned >= waveTargetsTotal && killRate >= 80 && gameActive) {
+				gameActive = false; // Prevent multiple calls
+				setTimeout(() => {
+					nextWave();
+					gameActive = true; // Re-enable after wave transition
+				}, 1000);
+			}
+		}
         
         function nextWave() {
             wave++;
