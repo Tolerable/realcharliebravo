@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Mission Failed | Tactical Merc Shop</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
+            color: #00ff00;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: 1;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #ff0000;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+            margin-bottom: 20px;
+            animation: glitch 2s infinite;
+        }
+        
+        .mission-status {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+        }
+        
+        .message {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            line-height: 1.6;
+            color: #00ff00;
+        }
+        
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: #ff6600;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border: 1px solid #ff6600;
+            border-radius: 5px;
+        }
+        
+        .home-button {
+            background: linear-gradient(45deg, #006600, #00aa00);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        .home-button:hover {
+            background: linear-gradient(45deg, #00aa00, #00ff00);
+            box-shadow: 0 0 30px rgba(0,255,0,0.6);
+            transform: translateY(-2px);
+        }
+        
+        .footer-msg {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-2px) translateY(1px); }
+            20% { transform: translateX(2px) translateY(-1px); }
+            30% { transform: translateX(-1px) translateY(2px); }
+            40% { transform: translateX(1px) translateY(-2px); }
+            50% { transform: translateX(-2px) translateY(1px); }
+            60% { transform: translateX(2px) translateY(-1px); }
+            70% { transform: translateX(-1px) translateY(2px); }
+            80% { transform: translateX(1px) translateY(-2px); }
+            90% { transform: translateX(-2px) translateY(1px); }
+        }
+        
+        .camo-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(0,255,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: scan 3s linear infinite;
+            z-index: 5;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="matrix-bg" id="matrix"></canvas>
+    <div class="camo-overlay"></div>
+    
+    <div class="container">
+        <div class="error-code">404</div>
+        <div class="mission-status" id="missionStatus">MISSION FAILED</div>
+        <div class="message" id="message">
+            Target not found. Intelligence suggests the objective has been relocated or destroyed.
+        </div>
+        <div class="coordinates" id="coordinates">
+            COORDINATES: 40.7128° N, 74.0060° W | STATUS: COMPROMISED
+        </div>
+        <a href="/" class="home-button">RETURN TO BASE</a>
+        <div class="footer-msg" id="footerMsg">
+            "Freedom isn't free" - Remember those who served
+        </div>
+    </div>
+
+    <script>
+        // Matrix rain effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('');
+        const fontSize = 10;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+        
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff00';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        
+        setInterval(draw, 33);
+        
+        // Dynamic content rotation
+        const messages = [
+            {
+                status: "MISSION FAILED",
+                message: "Target not found. Intelligence suggests the objective has been relocated or destroyed.",
+                coordinates: "COORDINATES: 40.7128° N, 74.0060° W | STATUS: COMPROMISED",
+                footer: "\"Freedom isn't free\" - Remember those who served"
+            },
+            {
+                status: "OPERATION ABORT",
+                message: "Hostile territory detected. Recommended course: tactical withdrawal and recon.",
+                coordinates: "GRID REF: 12S UD 123 456 | THREAT LEVEL: HIGH",
+                footer: "\"This we'll defend\" - U.S. Army motto"
+            },
+            {
+                status: "COMMS DOWN",
+                message: "Communication link severed. Unable to establish connection to requested sector.",
+                coordinates: "FREQ: 146.520 MHz | SIGNAL: LOST | RANGE: OUT OF BOUNDS",
+                footer: "\"Semper Fi\" - Always faithful to the mission"
+            },
+            {
+                status: "INTEL FAILED",
+                message: "Surveillance reports negative contact. Target may have been extracted or eliminated.",
+                coordinates: "SECTOR: ALPHA-7 | CLEARANCE: DENIED | STATUS: CLASSIFIED",
+                footer: "\"Death before dishonor\" - Standing watch for freedom"
+            },
+            {
+                status: "RADIO SILENCE",
+                message: "No response from forward operating base. Last known transmission interrupted.",
+                coordinates: "CALLSIGN: EAGLE-6 | TIME: 14:30 ZULU | STATUS: MIA",
+                footer: "\"Leave no one behind\" - A promise kept"
+            }
+        ];
+        
+        // Select random message on load
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        document.getElementById('missionStatus').textContent = randomMessage.status;
+        document.getElementById('message').textContent = randomMessage.message;
+        document.getElementById('coordinates').textContent = randomMessage.coordinates;
+        document.getElementById('footerMsg').textContent = randomMessage.footer;
+        
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
