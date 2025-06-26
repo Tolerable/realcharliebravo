@@ -139,6 +139,56 @@
             border-radius: 10px;
         }
         
+        .health-bar {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #ff0000;
+            margin: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .health-fill {
+            height: 20px;
+            background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .health-text {
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .game-over-title {
+            font-size: 4rem;
+            color: #ff0000;
+            text-shadow: 0 0 20px #ff0000;
+            margin-bottom: 20px;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
         .stat {
             text-align: center;
         }
@@ -202,7 +252,14 @@
         <div class="subtitle">Defending Liberty Since 1776 - Click to Eliminate Threats</div>
     </div>
     
-    <div class="wave-info" id="waveInfo">Wave 1 - Eliminate all hostile targets!</div>
+    <div class="wave-info" id="waveInfo">Wave 1 - Eliminate 80% of targets to advance!</div>
+    
+    <div class="health-bar">
+        <div class="health-text">FREEDOM METER: <span id="healthPercent">100%</span></div>
+        <div style="background: #333; border-radius: 10px; padding: 2px;">
+            <div class="health-fill" id="healthFill" style="width: 100%;"></div>
+        </div>
+    </div>
     
     <div class="game-area" id="gameArea">
         <div class="crosshair" id="crosshair"></div>
@@ -222,8 +279,12 @@
             <div class="stat-label">WAVE</div>
         </div>
         <div class="stat">
-            <div class="stat-value" id="accuracy">100%</div>
-            <div class="stat-label">ACCURACY</div>
+            <div class="stat-value" id="escaped">0</div>
+            <div class="stat-label">ESCAPED</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="killRate">0%</div>
+            <div class="stat-label">KILL RATE</div>
         </div>
     </div>
     
@@ -232,6 +293,17 @@
     <div class="controls">
         <button class="btn" onclick="startGame()">START MISSION</button>
         <button class="btn" onclick="resetGame()">RESET</button>
+    </div>
+    
+    <div class="game-over" id="gameOver">
+        <div class="game-over-title">MISSION FAILED</div>
+        <div style="color: #ff6600; font-size: 1.5rem; margin-bottom: 20px;">
+            Freedom under threat! Too many hostiles escaped!
+        </div>
+        <div style="color: #ffff00; font-size: 1.2rem; margin-bottom: 30px;">
+            Final Score: <span id="finalScore">0</span> | Wave Reached: <span id="finalWave">1</span>
+        </div>
+        <button class="btn" onclick="resetGame()">TRY AGAIN</button>
     </div>
 
     <script>
@@ -242,7 +314,11 @@
         let wave = 1;
         let targets = [];
         let targetInterval;
-        let waveTargetsRemaining = 0;
+        let waveTargetsSpawned = 0;
+        let waveTargetsTotal = 0;
+        let escaped = 0;
+        let health = 100;
+        let waveTargetsNeeded = 0;
         
         const gameArea = document.getElementById('gameArea');
         const crosshair = document.getElementById('crosshair');
@@ -309,7 +385,7 @@
         }
         
         function createTarget() {
-            if (!gameActive || waveTargetsRemaining <= 0) return;
+            if (!gameActive || waveTargetsSpawned >= waveTargetsTotal) return;
             
             const target = document.createElement('div');
             target.className = 'target';
@@ -324,11 +400,13 @@
             target.style.left = x + 'px';
             target.style.top = y + 'px';
             
-            // Random movement
-            const moveSpeed = Math.random() * 2 + 1;
+            // Random movement - faster each wave
+            const moveSpeed = Math.random() * (1 + wave * 0.5) + 1;
             const direction = Math.random() * 360;
             let targetX = x;
             let targetY = y;
+            let directionX = Math.cos(direction) * moveSpeed;
+            let directionY = Math.sin(direction) * moveSpeed;
             
             target.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -342,14 +420,16 @@
                     return;
                 }
                 
-                targetX += Math.cos(direction) * moveSpeed;
-                targetY += Math.sin(direction) * moveSpeed;
+                targetX += directionX;
+                targetY += directionY;
                 
                 // Bounce off walls
                 if (targetX <= 0 || targetX >= maxX) {
+                    directionX = -directionX;
                     targetX = Math.max(0, Math.min(maxX, targetX));
                 }
                 if (targetY <= 0 || targetY >= maxY) {
+                    directionY = -directionY;
                     targetY = Math.max(0, Math.min(maxY, targetY));
                 }
                 
@@ -359,22 +439,21 @@
             
             gameArea.appendChild(target);
             targets.push(target);
+            waveTargetsSpawned++;
             
-            // Remove target after 5 seconds if not hit
+            // Remove target after time if not hit - shorter time each wave
+            const targetLifetime = Math.max(4000 - (wave * 200), 2000);
             setTimeout(() => {
                 if (target.parentNode) {
-                    target.parentNode.removeChild(target);
-                    const index = targets.indexOf(target);
-                    if (index > -1) targets.splice(index, 1);
+                    targetEscaped(target);
                 }
                 clearInterval(moveInterval);
-            }, 5000);
+            }, targetLifetime);
         }
         
         function hitTarget(target) {
             hits++;
             score += wave * 100;
-            waveTargetsRemaining--;
             
             // Create explosion
             const explosion = document.createElement('div');
@@ -404,7 +483,85 @@
             document.getElementById('message').textContent = message;
             
             // Check wave completion
-            if (waveTargetsRemaining <= 0) {
+            checkWaveCompletion();
+        }
+            if (!target.parentNode) return;
+            
+            escaped++;
+            health -= Math.max(5, 10 - wave); // Lose more health in early waves
+            
+            // Flash red effect
+            target.style.background = '#ff0000';
+            target.style.boxShadow = '0 0 30px #ff0000';
+            
+            setTimeout(() => {
+                if (target.parentNode) {
+                    target.parentNode.removeChild(target);
+                }
+                const index = targets.indexOf(target);
+                if (index > -1) targets.splice(index, 1);
+            }, 300);
+            
+            updateStats();
+            updateHealth();
+            
+            // Show escape message
+            const escapeMessages = [
+                "Target escaped! Freedom at risk!",
+                "Hostile got away! Defend harder!",
+                "Enemy escaped! Liberty threatened!",
+                "Target fled! Tighten security!",
+                "Hostile breakthrough! Stay alert!"
+            ];
+            const message = escapeMessages[Math.floor(Math.random() * escapeMessages.length)];
+            document.getElementById('message').textContent = message;
+            
+            // Check for game over
+            if (health <= 0) {
+                gameOver();
+            } else {
+                checkWaveCompletion();
+            }
+        }
+        
+        function updateHealth() {
+            const healthPercent = Math.max(0, health);
+            document.getElementById('healthFill').style.width = healthPercent + '%';
+            document.getElementById('healthPercent').textContent = Math.round(healthPercent) + '%';
+            
+            // Change color based on health
+            const healthFill = document.getElementById('healthFill');
+            if (healthPercent > 60) {
+                healthFill.style.background = 'linear-gradient(90deg, #00ff00, #88ff00)';
+            } else if (healthPercent > 30) {
+                healthFill.style.background = 'linear-gradient(90deg, #ffff00, #ff8800)';
+            } else {
+                healthFill.style.background = 'linear-gradient(90deg, #ff8800, #ff0000)';
+            }
+        }
+        
+        function gameOver() {
+            gameActive = false;
+            clearInterval(targetInterval);
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalWave').textContent = wave;
+            document.getElementById('gameOver').style.display = 'flex';
+            
+            // Clear all targets
+            targets.forEach(target => {
+                if (target.parentNode) {
+                    target.parentNode.removeChild(target);
+                }
+            });
+            targets = [];
+        }
+        
+        function checkWaveCompletion() {
+            const killRate = waveTargetsSpawned > 0 ? (hits / waveTargetsSpawned) * 100 : 0;
+            
+            // Need 80% kill rate and all targets spawned to advance
+            if (waveTargetsSpawned >= waveTargetsTotal && killRate >= 80) {
                 setTimeout(() => {
                     nextWave();
                 }, 1000);
@@ -413,11 +570,16 @@
         
         function nextWave() {
             wave++;
-            waveTargetsRemaining = wave * 3;
+            waveTargetsTotal = Math.min(5 + wave * 2, 15); // Max 15 targets per wave
+            waveTargetsSpawned = 0;
+            
+            // Restore some health for completing wave
+            health = Math.min(100, health + 20);
+            updateHealth();
             
             const waveMessage = waveMessages[Math.floor(Math.random() * waveMessages.length)];
             document.getElementById('message').textContent = waveMessage;
-            document.getElementById('waveInfo').textContent = `Wave ${wave} - Eliminate all hostile targets!`;
+            document.getElementById('waveInfo').textContent = `Wave ${wave} - Eliminate 80% of targets to advance!`;
             
             updateStats();
             
@@ -429,9 +591,9 @@
             });
             targets = [];
             
-            // Start spawning new targets
+            // Start spawning new targets - faster each wave
             clearInterval(targetInterval);
-            const spawnRate = Math.max(800 - (wave * 100), 300);
+            const spawnRate = Math.max(1200 - (wave * 100), 400);
             targetInterval = setInterval(createTarget, spawnRate);
         }
         
@@ -439,12 +601,10 @@
             document.getElementById('score').textContent = score;
             document.getElementById('hits').textContent = hits;
             document.getElementById('wave').textContent = wave;
-            updateAccuracy();
-        }
-        
-        function updateAccuracy() {
-            const accuracy = shots > 0 ? Math.round((hits / shots) * 100) : 100;
-            document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('escaped').textContent = escaped;
+            
+            const killRate = waveTargetsSpawned > 0 ? Math.round((hits / waveTargetsSpawned) * 100) : 0;
+            document.getElementById('killRate').textContent = killRate + '%';
         }
         
         function startGame() {
@@ -453,12 +613,17 @@
             hits = 0;
             shots = 0;
             wave = 1;
-            waveTargetsRemaining = 5;
+            escaped = 0;
+            health = 100;
+            waveTargetsTotal = 5;
+            waveTargetsSpawned = 0;
             
             document.getElementById('message').textContent = "Mission active! Defend freedom!";
-            document.getElementById('waveInfo').textContent = `Wave ${wave} - Eliminate all hostile targets!`;
+            document.getElementById('waveInfo').textContent = `Wave ${wave} - Eliminate 80% of targets to advance!`;
+            document.getElementById('gameOver').style.display = 'none';
             
             updateStats();
+            updateHealth();
             
             // Clear existing targets
             targets.forEach(target => {
@@ -489,11 +654,16 @@
             hits = 0;
             shots = 0;
             wave = 1;
-            waveTargetsRemaining = 0;
+            escaped = 0;
+            health = 100;
+            waveTargetsTotal = 5;
+            waveTargetsSpawned = 0;
             
             updateStats();
+            updateHealth();
             document.getElementById('message').textContent = "Ready for combat! Click targets to defend freedom!";
-            document.getElementById('waveInfo').textContent = "Wave 1 - Eliminate all hostile targets!";
+            document.getElementById('waveInfo').textContent = "Wave 1 - Eliminate 80% of targets to advance!";
+            document.getElementById('gameOver').style.display = 'none';
         }
         
         // Initialize crosshair position
