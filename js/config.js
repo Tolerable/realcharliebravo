@@ -140,7 +140,7 @@
                 "name": "American Flag Lapel Pin",
                 "type": "American-Flag",
                 "status": "available",
-                "delivery": "physical",
+                "delivery": "digital",
                 "digitalContent": "https://www.agentgearusa.com/product/american-flag-lapel-pin/",
                 "image": "product5.jpg",
                 "additionalImages": [],
