@@ -209,7 +209,7 @@
             "url": "#products"
         },
         {
-            "name": "Freedom-Defender",
+            "name": "Freedom Defender",
             "url": "/freedomdefender.html"
         },
         {
@@ -236,7 +236,7 @@
     },
     "showFooterFriendLinks": true,
     "advanced": {
-        "enableShop": true,
+        "enableShop": false,
         "enableLocalStorage": true,
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
