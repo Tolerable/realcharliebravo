@@ -215,10 +215,6 @@
         {
             "name": "About",
             "url": "#about"
-        },
-        {
-            "name": "Contact",
-            "url": "#contact"
         }
     ],
     "friendLinks": [
