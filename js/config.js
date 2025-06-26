@@ -113,33 +113,6 @@
             }
         ],
         "items": {
-            "product-1": {
-                "id": "product-1",
-                "name": "Anti Nazi Crossed Out Swastika Enamel Pin",
-                "type": "Premium Collection",
-                "status": "available",
-                "delivery": "digital",
-                "digitalContent": "https://www.deadrockers.net/products/anti-nazi-crossed-out-swastika-enamel-pin",
-                "image": "product1.jpg",
-                "additionalImages": [],
-                "description": "This is a premium collectible with exceptional qualities.",
-                "variety": "Premium",
-                "rating": "4.8/5",
-                "origin": "External",
-                "rarity": "",
-                "details": "Lapel / Hat Pin / Collectable Pin",
-                "notes": "Worth getting.",
-                "packOptions": [
-                    {
-                        "size": "1 Item",
-                        "regularPrice": 10,
-                        "salePrice": 10
-                    }
-                ],
-                "enableHoverImage": false,
-                "hoverImage": "",
-                "hidden": false
-            },
             "product-1750962404314": {
                 "id": "product-1750962404314",
                 "name": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
@@ -160,7 +133,7 @@
                 "enableHoverImage": false,
                 "hoverImage": "",
                 "hidden": false,
-                "displayOrder": 1
+                "displayOrder": 4
             },
             "product-1750970205180": {
                 "id": "product-1750970205180",
@@ -182,7 +155,7 @@
                 "enableHoverImage": false,
                 "hoverImage": "",
                 "hidden": false,
-                "displayOrder": 2
+                "displayOrder": 1
             },
             "product-1750970582979": {
                 "id": "product-1750970582979",
@@ -199,6 +172,28 @@
                 "origin": "External",
                 "rarity": "Standard",
                 "details": "Proud American Flag Hat/Lapel Pin",
+                "notes": "",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 2
+            },
+            "product-1750971071747": {
+                "id": "product-1750971071747",
+                "name": "Anti Nazi Crossed Out Swastika Enamel Pin",
+                "type": "Anti-Nazi",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://www.deadrockers.net/products/anti-nazi-crossed-out-swastika-enamel-pin",
+                "image": "product1.jpg",
+                "additionalImages": [],
+                "description": "Anti Nazi Crossed Out Swastika Enamel Pin",
+                "variety": "Premium",
+                "rating": "4.8/5",
+                "origin": "External",
+                "rarity": "Standard",
+                "details": "Anti Nazi Crossed Out Swastika Enamel Pin",
                 "notes": "",
                 "packOptions": [],
                 "enableHoverImage": false,
