@@ -1324,18 +1324,46 @@ function initializeEffects() {
         });
     }
     
-    // Special feature
-    if (siteConfig.effects && siteConfig.effects.specialFeature && siteConfig.effects.specialFeature.enabled) {
-        loadScript(`effects/${siteConfig.effects.specialFeature.type}.js`, function() {
-            if (typeof initSpecialFeature === 'function') {
-                const options = {
-                    image: siteConfig.effects.specialFeature.image,
-                    behavior: siteConfig.effects.specialFeature.behavior
-                };
-                initSpecialFeature(options);
-            }
-        });
-    }
+	// Special feature
+	if (siteConfig.effects && siteConfig.effects.specialFeature && siteConfig.effects.specialFeature.enabled) {
+		loadScript(`effects/${siteConfig.effects.specialFeature.type}.js`, function() {
+			if (typeof initSpecialFeature === 'function') {
+				const options = {
+					image: siteConfig.effects.specialFeature.image,
+					behavior: siteConfig.effects.specialFeature.behavior
+				};
+				initSpecialFeature(options);
+			}
+		});
+	}
+
+	// Background Audio
+	if (siteConfig.effects && siteConfig.effects.backgroundAudio && siteConfig.effects.backgroundAudio.enabled) {
+		initBackgroundAudio(siteConfig.effects.backgroundAudio);
+	}
+
+	function initBackgroundAudio(audioConfig) {
+		if (!audioConfig.file) return;
+		
+		const audio = document.createElement('audio');
+		audio.src = audioConfig.file;
+		audio.loop = true;
+		audio.volume = audioConfig.volume || 0.3;
+		audio.autoplay = true;
+		
+		// Add user interaction handler for autoplay policies
+		const playAudio = () => {
+			audio.play().catch(e => console.log('Audio autoplay prevented:', e));
+			document.removeEventListener('click', playAudio);
+			document.removeEventListener('touchstart', playAudio);
+		};
+		
+		document.addEventListener('click', playAudio);
+		document.addEventListener('touchstart', playAudio);
+		
+		// Try to play immediately
+		audio.play().catch(e => console.log('Audio autoplay prevented, waiting for user interaction'));
+	}
 }
 
 // Helper function to load scripts dynamically
