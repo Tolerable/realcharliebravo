@@ -491,11 +491,12 @@ document.createElement = function(tagName) {
 				<div class="config-tab" data-tab="strainTree">Strain Tree</div>
 				<div class="config-tab" data-tab="about">About</div>
 				<div class="config-tab" data-tab="support">Support</div>
-            </div>
+			</div>
 
-			<!-- Config Path Selector -->
-			<h2>Configuration Source</h2>
-			<div class="form-group">
+			<div class="config-container">
+				<!-- Config Path Selector -->
+				<h2>Configuration Source</h2>
+				<div class="form-group">
 				<label for="config-path">Configuration File Path</label>
 				<div style="display: flex; gap: 10px; margin-bottom: 10px;">
 					<input type="text" id="config-path" placeholder="Path to config.js (e.g., js/config.js)" style="flex: 1;">
@@ -867,6 +868,34 @@ document.createElement = function(tagName) {
                         <option value="pulse">Pulse</option>
                     </select>
                 </div>
+
+				<h3>Background Audio</h3>
+
+				<div class="form-group">
+					<label for="background-audio-enabled">Enable Background Audio</label>
+					<select id="background-audio-enabled">
+						<option value="false" selected>No</option>
+						<option value="true">Yes</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="background-audio-file">Audio File URL</label>
+					<input type="url" id="background-audio-file" value="" placeholder="audio/background.mp3">
+					<p class="help-text">MP3 file that will loop in the background</p>
+				</div>
+
+				<div class="form-group">
+					<label for="background-audio-volume">Volume</label>
+					<select id="background-audio-volume">
+						<option value="0.1">10%</option>
+						<option value="0.2">20%</option>
+						<option value="0.3" selected>30%</option>
+						<option value="0.5">50%</option>
+						<option value="0.7">70%</option>
+					</select>
+				</div>				
+				
             </div>
 
 			<div class="config-section" id="images-section">
@@ -3521,6 +3550,11 @@ document.createElement = function(tagName) {
 								type: document.getElementById('special-feature-type').value,
 								image: document.getElementById('floating-object-image').value,
 								behavior: document.getElementById('special-feature-behavior').value
+							},
+							backgroundAudio: {
+								enabled: document.getElementById('background-audio-enabled').value === 'true',
+								file: document.getElementById('background-audio-file').value,
+								volume: parseFloat(document.getElementById('background-audio-volume').value)
 							}
 						},                        
 						strainTree: {
