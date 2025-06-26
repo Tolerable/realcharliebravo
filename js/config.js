@@ -65,6 +65,11 @@
             "type": "floatingObject",
             "image": "img/floating-object.png",
             "behavior": "float"
+        },
+        "backgroundAudio": {
+            "enabled": true,
+            "file": "audio/background.mp3",
+            "volume": 0.5
         }
     },
     "strainTree": {
@@ -178,7 +183,7 @@
             "name": "StrainNavigator",
             "url": "https://www.strainnavigator.com/",
             "image": "img/friends/Strain_Navigator_Logo.jpg",
-            "description": "Premium strain database"
+            "description": "Your ultimate cannabis growing assistant"
         }
     ],
     "friendLinksShowcase": {
@@ -188,12 +193,12 @@
     },
     "showFooterFriendLinks": true,
     "advanced": {
-        "enableShop": false,
+        "enableShop": true,
         "enableLocalStorage": true,
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
         "analyticsId": "",
-        "orderEmail": "contact@realcharliebravo.com",
+        "orderEmail": "orders@example.com",
         "enableAgeCheck": true,
         "ageCheckMinimum": 21,
         "ageRedirectUrl": "https://www.google.com"
