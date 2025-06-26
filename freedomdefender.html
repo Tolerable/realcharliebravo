@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freedom Defender - Tactical Merc Shop</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #1a4a1a, #2d2d0d);
+            color: #00ff00;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border-bottom: 2px solid #00ff00;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: #ff6600;
+        }
+        
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 40%, #90EE90 40%, #228B22 100%);
+            margin: 20px 0;
+            overflow: hidden;
+            cursor: crosshair;
+            border: 3px solid #00ff00;
+        }
+        
+        .crosshair {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: #ff0000;
+            box-shadow: 0 0 5px #ff0000;
+        }
+        
+        .crosshair::before {
+            width: 2px;
+            height: 30px;
+            left: 14px;
+            top: 0;
+        }
+        
+        .crosshair::after {
+            width: 30px;
+            height: 2px;
+            left: 0;
+            top: 14px;
+        }
+        
+        .target {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: #ff0000;
+            border: 3px solid #000;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+        }
+        
+        .target:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #ff0000;
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #ffff00 0%, #ff8800 50%, #ff0000 100%);
+            border-radius: 50%;
+            animation: explode 0.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #00ff00;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #00ff00;
+        }
+        
+        .controls {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #006600, #00aa00);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #00aa00, #00ff00);
+            box-shadow: 0 0 30px rgba(0,255,0,0.6);
+            transform: translateY(-2px);
+        }
+        
+        .message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ffff00;
+            margin: 20px;
+            min-height: 30px;
+        }
+        
+        .wave-info {
+            text-align: center;
+            color: #ff6600;
+            font-size: 1.1rem;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">🎯 FREEDOM DEFENDER</div>
+        <div class="subtitle">Defending Liberty Since 1776 - Click to Eliminate Threats</div>
+    </div>
+    
+    <div class="wave-info" id="waveInfo">Wave 1 - Eliminate all hostile targets!</div>
+    
+    <div class="game-area" id="gameArea">
+        <div class="crosshair" id="crosshair"></div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value" id="score">0</div>
+            <div class="stat-label">SCORE</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="hits">0</div>
+            <div class="stat-label">HITS</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="wave">1</div>
+            <div class="stat-label">WAVE</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="accuracy">100%</div>
+            <div class="stat-label">ACCURACY</div>
+        </div>
+    </div>
+    
+    <div class="message" id="message">Ready for combat! Click targets to defend freedom!</div>
+    
+    <div class="controls">
+        <button class="btn" onclick="startGame()">START MISSION</button>
+        <button class="btn" onclick="resetGame()">RESET</button>
+    </div>
+
+    <script>
+        let gameActive = false;
+        let score = 0;
+        let hits = 0;
+        let shots = 0;
+        let wave = 1;
+        let targets = [];
+        let targetInterval;
+        let waveTargetsRemaining = 0;
+        
+        const gameArea = document.getElementById('gameArea');
+        const crosshair = document.getElementById('crosshair');
+        const messages = [
+            "Outstanding shot, soldier!",
+            "Target eliminated! Nice work!",
+            "Direct hit! Freedom prevails!",
+            "Excellent marksmanship!",
+            "Target neutralized! Oorah!",
+            "Bull's eye! Democracy wins!",
+            "Perfect shot! Liberty secured!",
+            "Target down! Victory!"
+        ];
+        
+        const waveMessages = [
+            "Wave cleared! Preparing next assault...",
+            "Sector secured! Advancing to next position...",
+            "Outstanding work! Enemy reinforcements incoming...",
+            "Area liberated! New hostiles detected...",
+            "Mission success! Next wave deploying..."
+        ];
+        
+        // Mouse tracking for crosshair
+        gameArea.addEventListener('mousemove', (e) => {
+            const rect = gameArea.getBoundingClientRect();
+            const x = e.clientX - rect.left - 15;
+            const y = e.clientY - rect.top - 15;
+            crosshair.style.left = x + 'px';
+            crosshair.style.top = y + 'px';
+        });
+        
+        // Click to shoot
+        gameArea.addEventListener('click', (e) => {
+            if (!gameActive) return;
+            
+            shots++;
+            updateAccuracy();
+            
+            // Create muzzle flash effect
+            const rect = gameArea.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            createMuzzleFlash(x, y);
+        });
+        
+        function createMuzzleFlash(x, y) {
+            const flash = document.createElement('div');
+            flash.style.position = 'absolute';
+            flash.style.left = (x - 10) + 'px';
+            flash.style.top = (y - 10) + 'px';
+            flash.style.width = '20px';
+            flash.style.height = '20px';
+            flash.style.background = 'radial-gradient(circle, #ffff00, transparent)';
+            flash.style.borderRadius = '50%';
+            flash.style.animation = 'explode 0.2s ease-out forwards';
+            flash.style.pointerEvents = 'none';
+            gameArea.appendChild(flash);
+            
+            setTimeout(() => {
+                if (flash.parentNode) {
+                    flash.parentNode.removeChild(flash);
+                }
+            }, 200);
+        }
+        
+        function createTarget() {
+            if (!gameActive || waveTargetsRemaining <= 0) return;
+            
+            const target = document.createElement('div');
+            target.className = 'target';
+            target.innerHTML = '❌'; // Anti-symbol
+            
+            // Random position
+            const maxX = gameArea.offsetWidth - 80;
+            const maxY = gameArea.offsetHeight - 80;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            
+            target.style.left = x + 'px';
+            target.style.top = y + 'px';
+            
+            // Random movement
+            const moveSpeed = Math.random() * 2 + 1;
+            const direction = Math.random() * 360;
+            let targetX = x;
+            let targetY = y;
+            
+            target.addEventListener('click', (e) => {
+                e.stopPropagation();
+                hitTarget(target);
+            });
+            
+            // Move target
+            const moveInterval = setInterval(() => {
+                if (!gameActive || !target.parentNode) {
+                    clearInterval(moveInterval);
+                    return;
+                }
+                
+                targetX += Math.cos(direction) * moveSpeed;
+                targetY += Math.sin(direction) * moveSpeed;
+                
+                // Bounce off walls
+                if (targetX <= 0 || targetX >= maxX) {
+                    targetX = Math.max(0, Math.min(maxX, targetX));
+                }
+                if (targetY <= 0 || targetY >= maxY) {
+                    targetY = Math.max(0, Math.min(maxY, targetY));
+                }
+                
+                target.style.left = targetX + 'px';
+                target.style.top = targetY + 'px';
+            }, 50);
+            
+            gameArea.appendChild(target);
+            targets.push(target);
+            
+            // Remove target after 5 seconds if not hit
+            setTimeout(() => {
+                if (target.parentNode) {
+                    target.parentNode.removeChild(target);
+                    const index = targets.indexOf(target);
+                    if (index > -1) targets.splice(index, 1);
+                }
+                clearInterval(moveInterval);
+            }, 5000);
+        }
+        
+        function hitTarget(target) {
+            hits++;
+            score += wave * 100;
+            waveTargetsRemaining--;
+            
+            // Create explosion
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = target.style.left;
+            explosion.style.top = target.style.top;
+            gameArea.appendChild(explosion);
+            
+            setTimeout(() => {
+                if (explosion.parentNode) {
+                    explosion.parentNode.removeChild(explosion);
+                }
+            }, 500);
+            
+            // Remove target
+            if (target.parentNode) {
+                target.parentNode.removeChild(target);
+            }
+            const index = targets.indexOf(target);
+            if (index > -1) targets.splice(index, 1);
+            
+            // Update display
+            updateStats();
+            
+            // Show hit message
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            document.getElementById('message').textContent = message;
+            
+            // Check wave completion
+            if (waveTargetsRemaining <= 0) {
+                setTimeout(() => {
+                    nextWave();
+                }, 1000);
+            }
+        }
+        
+        function nextWave() {
+            wave++;
+            waveTargetsRemaining = wave * 3;
+            
+            const waveMessage = waveMessages[Math.floor(Math.random() * waveMessages.length)];
+            document.getElementById('message').textContent = waveMessage;
+            document.getElementById('waveInfo').textContent = `Wave ${wave} - Eliminate all hostile targets!`;
+            
+            updateStats();
+            
+            // Clear existing targets
+            targets.forEach(target => {
+                if (target.parentNode) {
+                    target.parentNode.removeChild(target);
+                }
+            });
+            targets = [];
+            
+            // Start spawning new targets
+            clearInterval(targetInterval);
+            const spawnRate = Math.max(800 - (wave * 100), 300);
+            targetInterval = setInterval(createTarget, spawnRate);
+        }
+        
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('hits').textContent = hits;
+            document.getElementById('wave').textContent = wave;
+            updateAccuracy();
+        }
+        
+        function updateAccuracy() {
+            const accuracy = shots > 0 ? Math.round((hits / shots) * 100) : 100;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+        
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            hits = 0;
+            shots = 0;
+            wave = 1;
+            waveTargetsRemaining = 5;
+            
+            document.getElementById('message').textContent = "Mission active! Defend freedom!";
+            document.getElementById('waveInfo').textContent = `Wave ${wave} - Eliminate all hostile targets!`;
+            
+            updateStats();
+            
+            // Clear existing targets
+            targets.forEach(target => {
+                if (target.parentNode) {
+                    target.parentNode.removeChild(target);
+                }
+            });
+            targets = [];
+            
+            // Start spawning targets
+            targetInterval = setInterval(createTarget, 1000);
+        }
+        
+        function resetGame() {
+            gameActive = false;
+            clearInterval(targetInterval);
+            
+            // Clear all targets
+            targets.forEach(target => {
+                if (target.parentNode) {
+                    target.parentNode.removeChild(target);
+                }
+            });
+            targets = [];
+            
+            // Reset stats
+            score = 0;
+            hits = 0;
+            shots = 0;
+            wave = 1;
+            waveTargetsRemaining = 0;
+            
+            updateStats();
+            document.getElementById('message').textContent = "Ready for combat! Click targets to defend freedom!";
+            document.getElementById('waveInfo').textContent = "Wave 1 - Eliminate all hostile targets!";
+        }
+        
+        // Initialize crosshair position
+        crosshair.style.left = '0px';
+        crosshair.style.top = '0px';
+    </script>
+</body>
+</html>
