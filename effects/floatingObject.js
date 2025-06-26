@@ -12,7 +12,7 @@ function initSpecialFeature(options) {
     container.style.left = '0';
     container.style.width = '100%';
     container.style.height = '100%';
-    container.style.zIndex = '0';
+    container.style.zIndex = '9999'; // Changed from '0' to '9999' to float above everything
     container.style.pointerEvents = 'none';
     
     // Create floating object
@@ -22,6 +22,7 @@ function initSpecialFeature(options) {
     floatingObject.style.position = 'absolute';
     floatingObject.style.width = '40px';
     floatingObject.style.height = 'auto';
+    floatingObject.style.opacity = '0.8'; // Added opacity to make it visible but not overwhelming
     
     // Add to container
     container.appendChild(floatingObject);
@@ -40,7 +41,7 @@ function initSpecialFeature(options) {
                 // Wait for fade out, then change position and fade in
                 setTimeout(() => {
                     setRandomPosition(floatingObject);
-                    floatingObject.style.opacity = '1';
+                    floatingObject.style.opacity = '0.8'; // Changed from '1' to '0.8'
                 }, 200);
             }, 8000);
             break;
@@ -71,9 +72,9 @@ function initSpecialFeature(options) {
                 style.id = 'pulse-animation';
                 style.textContent = `
                     @keyframes pulse {
-                        0% { transform: scale(1); }
-                        50% { transform: scale(1.2); }
-                        100% { transform: scale(1); }
+                        0% { transform: scale(1); opacity: 0.8; }
+                        50% { transform: scale(1.2); opacity: 1; }
+                        100% { transform: scale(1); opacity: 0.8; }
                     }
                 `;
                 document.head.appendChild(style);
