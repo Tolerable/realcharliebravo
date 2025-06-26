@@ -2341,7 +2341,7 @@ document.createElement = function(tagName) {
 				if (deliverySelect) {
 					deliverySelect.value = isNewProduct ? 'physical' : (product.delivery || 'physical');
 					
-					// ADD THIS LINE to trigger the change event and update the UI
+					// Trigger the change event to update the UI
 					const changeEvent = new Event('change');
 					deliverySelect.dispatchEvent(changeEvent);
 				}
@@ -2450,15 +2450,6 @@ document.createElement = function(tagName) {
 				
 				// Set up event handlers for buttons
 				setupProductEditorEventHandlers();
-
-				// Set delivery type AFTER handlers are set up
-				const deliverySelect = document.getElementById('product-delivery');
-				if (deliverySelect && !isNewProduct && product.delivery) {
-					deliverySelect.value = product.delivery;
-					// Trigger change to update UI
-					const changeEvent = new Event('change');
-					deliverySelect.dispatchEvent(changeEvent);
-				}
 
 				// Show modal
 				modal.style.display = 'block';
