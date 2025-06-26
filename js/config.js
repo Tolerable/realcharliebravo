@@ -134,6 +134,28 @@
                 "enableHoverImage": false,
                 "hoverImage": "",
                 "hidden": false
+            },
+            "product-1750962404314": {
+                "id": "product-1750962404314",
+                "name": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
+                "type": "Premium Collection",
+                "status": "available",
+                "delivery": "digital",
+                "digitalContent": "https://www.angryyoungandpoor.com/store/pc/Anti-Nazi-Crossed-Out-Swastika-Embroidered-Patch-p40421.htm",
+                "image": "product2.jpg",
+                "additionalImages": [],
+                "description": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
+                "variety": "Premium",
+                "rating": "4.8/5",
+                "origin": "External",
+                "rarity": "Standard",
+                "details": "3\" patch with iron on backing",
+                "notes": "Worth getting.",
+                "packOptions": [],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false,
+                "displayOrder": 1
             }
         }
     },
