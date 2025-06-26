@@ -81,7 +81,7 @@
         "title": "About Seed Collective",
         "subtitle": "Our Story and Mission",
         "image": "img/about.jpg",
-        "description": "Founded in 2024, Seed Collective is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.",
+        "description": "Founded in 2025, RealCharlieBravo Merc Shop is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.",
         "teamMembers": [],
         "historyItems": [],
         "additionalSections": []
@@ -110,29 +110,30 @@
         "items": {
             "product-1": {
                 "id": "product-1",
-                "name": "Premium Collectible 1",
+                "name": "Anti Nazi Crossed Out Swastika Enamel Pin",
                 "type": "Premium Collection",
                 "status": "available",
-                "image": "img/product1.jpg",
+                "delivery": "digital",
+                "digitalContent": "https://www.deadrockers.net/products/anti-nazi-crossed-out-swastika-enamel-pin",
+                "image": "product1.jpg",
                 "additionalImages": [],
                 "description": "This is a premium collectible with exceptional qualities.",
                 "variety": "Premium",
-                "rating": "4.5/5",
-                "origin": "Imported",
-                "details": "Detailed information about this premium collectible.",
-                "notes": "Special notes about this premium collectible.",
+                "rating": "4.8/5",
+                "origin": "External",
+                "rarity": "",
+                "details": "Lapel / Hat Pin / Collectable Pin",
+                "notes": "Worth getting.",
                 "packOptions": [
                     {
-                        "size": "3 Pack",
-                        "regularPrice": 35,
-                        "salePrice": 30
-                    },
-                    {
-                        "size": "5 Pack",
-                        "regularPrice": 50,
-                        "salePrice": 45
+                        "size": "1 Item",
+                        "regularPrice": 10,
+                        "salePrice": 10
                     }
-                ]
+                ],
+                "enableHoverImage": false,
+                "hoverImage": "",
+                "hidden": false
             }
         }
     },
