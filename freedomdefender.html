@@ -502,13 +502,15 @@
             target.style.background = '#ff0000';
             target.style.boxShadow = '0 0 30px #ff0000';
             
-            setTimeout(() => {
-                if (target.parentNode) {
-                    target.parentNode.removeChild(target);
-                }
-                const index = targets.indexOf(target);
-                if (index > -1) targets.splice(index, 1);
-            }, 300);
+			// Remove from targets array immediately to prevent multiple calls
+			const index = targets.indexOf(target);
+			if (index > -1) targets.splice(index, 1);
+
+			setTimeout(() => {
+				if (target.parentNode) {
+					target.parentNode.removeChild(target);
+				}
+			}, 300);
             
             updateStats();
             updateHealth();
