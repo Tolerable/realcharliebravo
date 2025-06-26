@@ -3,7 +3,7 @@
 
 				window.siteConfig = {
     "site": {
-        "name": "REALCHARLIEBRAVO MERC SHOP",
+        "name": "TACTICAL MERC SHOP",
         "tagline": "Unique Collectibles from Around the World",
         "logo": "img/logo.jpg",
         "heroBackground": "img/hero-bg.jpg",
@@ -24,7 +24,7 @@
                 "url": "https://x.com/RealCBravo"
             }
         ],
-        "copyright": "© 2025 RealCharlieBravo. All rights reserved."
+        "copyright": "© 2025 RealCharlieBravo.com All rights reserved."
     },
     "colors": {
         "primary": "#2e7d32",
@@ -44,9 +44,9 @@
         "body": "'Exo 2', sans-serif"
     },
     "terminology": {
-        "category1": "Premium Collection",
-        "category2": "Signature Series",
-        "category3": "Hybrid Collection",
+        "category1": "Anti-Nazi",
+        "category2": "Pro-USA",
+        "category3": "American-Flag",
         "productTerm": "Collectible",
         "productPluralTerm": "Collectibles",
         "packTerm": "Collection Pack",
@@ -56,7 +56,7 @@
     },
     "effects": {
         "backgroundEffect": {
-            "enabled": true,
+            "enabled": false,
             "type": "stars",
             "intensity": "medium"
         },
@@ -161,7 +161,7 @@
     },
     "navigation": [
         {
-            "name": "Premium Collections",
+            "name": "Our Collections",
             "url": "#products"
         },
         {
@@ -188,12 +188,12 @@
     },
     "showFooterFriendLinks": true,
     "advanced": {
-        "enableShop": true,
+        "enableShop": false,
         "enableLocalStorage": true,
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
         "analyticsId": "",
-        "orderEmail": "orders@realcharliebravo.com",
+        "orderEmail": "contact@realcharliebravo.com",
         "enableAgeCheck": true,
         "ageCheckMinimum": 21,
         "ageRedirectUrl": "https://www.google.com"
