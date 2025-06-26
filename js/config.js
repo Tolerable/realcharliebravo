@@ -64,7 +64,7 @@
             "enabled": true,
             "type": "floatingObject",
             "image": "img/floating-object.png",
-            "behavior": "teleport"
+            "behavior": "float"
         }
     },
     "strainTree": {
