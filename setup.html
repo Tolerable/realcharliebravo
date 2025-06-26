@@ -1915,6 +1915,7 @@ document.createElement = function(tagName) {
 							name: 'Premium Collectible 1',
 							type: 'Premium Collection',
 							status: 'available',
+							delivery: 'physical',
 							image: 'img/product1.jpg',
 							additionalImages: [],
 							description: 'This is a premium collectible with exceptional qualities.',
@@ -2337,8 +2338,8 @@ document.createElement = function(tagName) {
 				
 				// Set delivery type and digital content
 				const deliverySelect = document.getElementById('product-delivery');
-				if (deliverySelect && !isNewProduct) {
-					deliverySelect.value = product.delivery || 'physical';
+				if (deliverySelect) {
+					deliverySelect.value = isNewProduct ? 'physical' : (product.delivery || 'physical');
 					
 					// ADD THIS LINE to trigger the change event and update the UI
 					const changeEvent = new Event('change');
