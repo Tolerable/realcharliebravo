@@ -193,7 +193,7 @@
     },
     "showFooterFriendLinks": true,
     "advanced": {
-        "enableShop": true,
+        "enableShop": false,
         "enableLocalStorage": true,
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
