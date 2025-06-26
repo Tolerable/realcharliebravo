@@ -493,7 +493,8 @@ document.createElement = function(tagName) {
 				<div class="config-tab" data-tab="support">Support</div>
 			</div>
 
-			<div class="config-container">
+			<!-- Basic Info Section -->
+			<div class="config-section active" id="basic-section">
 				<!-- Config Path Selector -->
 				<h2>Configuration Source</h2>
 				<div class="form-group">
@@ -507,11 +508,9 @@ document.createElement = function(tagName) {
 					<div id="config-options" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
 				</div>
 				<p class="help-text">Select a detected configuration or enter a custom path to your config.js file.</p>
-			</div>
-            
-            <!-- Basic Info Section -->
-            <div class="config-section active" id="basic-section">
-                <h2>Basic Site Information</h2>
+				</div>
+				
+				<h2>Basic Site Information</h2>
                 
                 <div class="form-group">
                     <label for="site-name">Site Name</label>
