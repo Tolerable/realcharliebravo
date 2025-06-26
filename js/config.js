@@ -67,9 +67,9 @@
             "behavior": "float"
         },
         "backgroundAudio": {
-            "enabled": true,
-            "file": "audio/background.mp3",
-            "volume": 0.5
+            "enabled": false,
+            "file": "",
+            "volume": 0.3
         }
     },
     "strainTree": {
@@ -209,6 +209,10 @@
             "url": "#products"
         },
         {
+            "name": "Freedom-Defender",
+            "url": "/freedomdefender.html"
+        },
+        {
             "name": "About",
             "url": "#about"
         },
@@ -232,7 +236,7 @@
     },
     "showFooterFriendLinks": true,
     "advanced": {
-        "enableShop": false,
+        "enableShop": true,
         "enableLocalStorage": true,
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
