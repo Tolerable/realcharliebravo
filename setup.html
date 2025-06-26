@@ -2339,6 +2339,10 @@ document.createElement = function(tagName) {
 				const deliverySelect = document.getElementById('product-delivery');
 				if (deliverySelect && !isNewProduct) {
 					deliverySelect.value = product.delivery || 'physical';
+					
+					// ADD THIS LINE to trigger the change event and update the UI
+					const changeEvent = new Event('change');
+					deliverySelect.dispatchEvent(changeEvent);
 				}
 				safeSetValue('digital-content', isNewProduct ? '' : (product.digitalContent || ''));
 				
