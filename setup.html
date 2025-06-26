@@ -2428,9 +2428,15 @@ document.createElement = function(tagName) {
 				
 				// Set up delivery type change handler
 				if (deliverySelect) {
+					// SAVE THE CURRENT VALUE BEFORE CLONING
+					const savedValue = deliverySelect.value;
+					
 					// Remove existing listener to prevent duplicates
 					const newDeliverySelect = deliverySelect.cloneNode(true);
 					deliverySelect.parentNode.replaceChild(newDeliverySelect, deliverySelect);
+					
+					// RESTORE THE VALUE AFTER CLONING
+					newDeliverySelect.value = savedValue;
 					
 					newDeliverySelect.addEventListener('change', function() {
 						console.log("Delivery type changed to:", this.value);
