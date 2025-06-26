@@ -1,0 +1,4801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+// Generate a unique session ID when the page loads
+const sessionId = Date.now().toString() + Math.random().toString(36).substring(2, 8);
+localStorage.setItem('configSessionId', sessionId);
+
+// Create a meta tag to prevent caching
+const metaTag = document.createElement('meta');
+metaTag.httpEquiv = 'Cache-Control';
+metaTag.content = 'no-cache, no-store, must-revalidate';
+document.head.appendChild(metaTag);
+
+// Add a unique parameter to all image requests to bypass cache
+const originalFetch = window.fetch;
+window.fetch = function(url, options) {
+  // Only modify image URLs
+  if (typeof url === 'string' && 
+      (url.endsWith('.jpg') || url.endsWith('.png') || url.endsWith('.jpeg') || url.endsWith('.ico') || 
+       url.match(/\/img\//) || url.match(/\/strains\//) || url.includes('pollinations'))) {
+    // Add a cache-busting parameter
+    const separator = url.includes('?') ? '&' : '?';
+    url = `${url}${separator}_cb=${sessionId}`;
+  }
+  return originalFetch.call(this, url, options);
+};
+
+// Do the same for image tags when they're created
+const originalCreateElement = document.createElement;
+document.createElement = function(tagName) {
+  const element = originalCreateElement.call(document, tagName);
+  if (tagName.toLowerCase() === 'img') {
+    // Override the src property
+    const originalSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(element, 'src', {
+      get: function() {
+        return originalSrcDescriptor.get.call(this);
+      },
+      set: function(value) {
+        if (typeof value === 'string') {
+          // Add cache-busting parameter to image URLs
+          const separator = value.includes('?') ? '&' : '?';
+          value = `${value}${separator}_cb=${sessionId}`;
+        }
+        return originalSrcDescriptor.set.call(this, value);
+      },
+      configurable: true
+    });
+  }
+  return element;
+};
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Configuration Tool</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #003B6F;
+            --secondary-color: #00FF9F;
+            --tertiary-color: #6A0DAD;
+            --background-color: #0A0E17;
+            --text-color: #FFFFFF;
+            
+            --font-heading: 'Orbitron', sans-serif;
+            --font-body: 'Exo 2', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+            margin: 30px 0 15px;
+            border-bottom: 1px solid var(--tertiary-color);
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            color: var(--text-color);
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .config-container {
+            background: rgba(10, 14, 23, 0.8);
+            border-radius: 10px;
+            border: 2px solid var(--tertiary-color);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="url"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-family: var(--font-body);
+        }
+        
+        input[type="color"] {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-input span {
+            min-width: 100px;
+        }
+        
+        .color-preview {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .preview-section {
+            margin-top: 30px;
+            position: relative;
+            border: 1px solid var(--tertiary-color);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 500px;
+            background-color: #111;
+        }
+        
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .preview-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+			justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--tertiary-color));
+            color: var(--text-color);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .config-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .config-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-family: var(--font-heading);
+        }
+        
+        .config-tab.active {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        
+        .config-section {
+            display: none;
+        }
+        
+        .config-section.active {
+            display: block !important;
+            animation: fadeIn 0.5s;
+        }
+        
+        .preset-theme {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .preset-theme:hover, .preset-theme.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 159, 0.5);
+            border-color: var(--secondary-color);
+        }
+        
+        .theme-colors {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .theme-color {
+            flex: 1;
+        }
+        
+        .code-output {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .copy-btn {
+            background: var(--tertiary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+		/* Image Generator Styles */
+		.image-preview {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background: #000;
+			border: 2px solid var(--primary-color);
+			border-radius: 10px;
+			overflow: hidden;
+			margin: 20px 0;
+		}
+
+		.image-preview img {
+			display: block;
+			max-width: 100%;
+			object-fit: contain;
+		}
+
+		.preview-logo {
+			width: 200px;
+			height: 200px;
+		}
+
+		.preview-hero {
+			width: 100%;
+			max-height: 300px; /* Scaled down for preview */
+		}
+
+		.preview-product, .preview-detail {
+			max-width: 100%;
+			max-height: 400px;
+		}
+
+		.image-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+			gap: 15px;
+			margin-top: 20px;
+		}
+
+		.library-item {
+			background: rgba(10, 14, 23, 0.8);
+			border: 1px solid var(--primary-color);
+			border-radius: 5px;
+			overflow: hidden;
+			transition: all 0.3s;
+		}
+
+		.library-item:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+		}
+
+		.library-item img {
+			width: 100%;
+			height: 150px;
+			object-fit: cover;
+		}
+
+		.library-item-info {
+			padding: 10px;
+			font-size: 0.8rem;
+		}
+
+		.library-item-info span {
+			display: block;
+			margin-bottom: 5px;
+			word-break: break-all;
+		}
+
+		.download-btn {
+			display: inline-block;
+			background: var(--primary-color);
+			color: white;
+			padding: 3px 8px;
+			border-radius: 3px;
+			text-decoration: none;
+			font-size: 0.7rem;
+		}
+
+		.download-btn:hover {
+			background: var(--secondary-color);
+			color: var(--background-color);
+		}
+
+		.library-item-actions {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 5px;
+		}
+
+		.delete-btn {
+			background: var(--alert-color);
+			color: white;
+			border: none;
+			padding: 3px 8px;
+			border-radius: 3px;
+			cursor: pointer;
+			font-size: 0.7rem;
+		}
+
+		.delete-btn:hover {
+			background: #d32f2f;
+		}
+
+		.preview-banner {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			padding: 8px 15px;
+			background: var(--alert-color);
+			color: white;
+			z-index: 1000;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.preview-banner-text {
+			font-family: var(--font-heading);
+			font-weight: bold;
+			letter-spacing: 1px;
+		}
+
+		#back-to-config {
+			background: rgba(255, 255, 255, 0.2);
+			color: white;
+			border: none;
+			padding: 5px 10px;
+			border-radius: 5px;
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+
+		#back-to-config:hover {
+			background: rgba(255, 255, 255, 0.3);
+			transform: translateY(-2px);
+		}
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+	
+        }
+    </style>
+</head>
+<body>
+	<script src="js/inventory.js"></script>
+    <div class="container">
+        <header>
+            <h1>Site Configuration Tool</h1>
+            <p>Customize your website with this easy configuration tool. Make changes below and preview in real-time.</p>
+        </header>
+        
+        <div class="config-container">
+            <div class="config-tabs">
+                <div class="config-tab active" data-tab="basic">Basic Info</div>
+                <div class="config-tab" data-tab="colors">Colors & Theme</div>
+                <div class="config-tab" data-tab="terminology">Terminology</div>
+                <div class="config-tab" data-tab="effects">Visual Effects</div>
+                <div class="config-tab" data-tab="advanced">Advanced</div>
+				<div class="config-tab" data-tab="images">Images</div>
+				<div class="config-tab" data-tab="products">Products</div>
+				<div class="config-tab" data-tab="strainTree">Strain Tree</div>
+				<div class="config-tab" data-tab="about">About</div>
+				<div class="config-tab" data-tab="support">Support</div>
+            </div>
+
+			<!-- Config Path Selector -->
+			<h2>Configuration Source</h2>
+			<div class="form-group">
+				<label for="config-path">Configuration File Path</label>
+				<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+					<input type="text" id="config-path" placeholder="Path to config.js (e.g., js/config.js)" style="flex: 1;">
+					<button type="button" class="btn" id="load-config-btn">Load Config</button>
+				</div>
+				<div id="detected-configs" style="margin-top: 10px;">
+					<p>Detected configurations:</p>
+					<div id="config-options" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+				</div>
+				<p class="help-text">Select a detected configuration or enter a custom path to your config.js file.</p>
+			</div>
+            
+            <!-- Basic Info Section -->
+            <div class="config-section active" id="basic-section">
+                <h2>Basic Site Information</h2>
+                
+                <div class="form-group">
+                    <label for="site-name">Site Name</label>
+                    <input type="text" id="site-name" value="Seed Collective">
+                </div>
+                
+                <div class="form-group">
+                    <label for="site-tagline">Tagline</label>
+                    <input type="text" id="site-tagline" value="Unique Collectibles from Around the World">
+                </div>
+                
+                <div class="form-group">
+                    <label for="site-logo">Logo URL</label>
+                    <input type="url" id="site-logo" value="img/logo.jpg">
+                    <p class="help-text">Recommended size: 200x200px</p>
+                </div>
+
+				<div class="form-group">
+					<label for="hero-background">Hero Background Image</label>
+					<input type="text" id="hero-background" placeholder="hero-bg.jpg">
+					<p class="help-text">Use the Image Generator tab to create a hero background image first.</p>
+				</div>
+
+				<div class="form-group">
+					<label for="show-hero-text">Hero Image Display</label>
+					<select id="show-hero-text">
+						<option value="true" selected>Show Text Overlay (Default)</option>
+						<option value="false">Show Full Image (No Text)</option>
+					</select>
+					<p class="help-text">Choose whether to show text over the hero image or display the full image without text overlay.</p>
+				</div>
+
+				<div class="form-group">
+					<label for="social-preview">Social Preview Image</label>
+					<input type="text" id="social-preview" placeholder="social-preview.jpg">
+					<p class="help-text">Image shown when your site is shared on social media. Recommended size: 1200x630px. Use the Image Generator tab to create one.</p>
+				</div>
+                
+                <div class="form-group">
+                    <label for="site-email">Contact Email</label>
+                    <input type="email" id="site-email" value="contact@example.com">
+                </div>
+
+				<div class="form-group">
+					<label for="order-email">Order Email</label>
+					<input type="email" id="order-email" value="orders@example.com">
+					<p class="help-text">Email address where orders will be sent. If left empty, the Contact Email will be used.</p>
+				</div>
+                
+				<h3>Social Links</h3>
+				<p>Add your social media links. These will appear in the footer contact section.</p>
+
+				<div id="social-links">
+					<div class="form-group social-item">
+						<div style="display: flex; gap: 10px;">
+							<input type="text" placeholder="Platform Name (e.g. Discord)" value="Discord" style="flex: 1;">
+							<input type="url" placeholder="URL" value="https://discord.gg/yourcollective" style="flex: 2;">
+							<button type="button" class="btn remove-social-btn">×</button>
+						</div>
+					</div>
+					
+					<div class="form-group social-item">
+						<div style="display: flex; gap: 10px;">
+							<input type="text" placeholder="Platform Name (e.g. YouTube)" value="YouTube" style="flex: 1;">
+							<input type="url" placeholder="URL" value="https://youtube.com/@yourchannel" style="flex: 2;">
+							<button type="button" class="btn remove-social-btn">×</button>
+						</div>
+					</div>
+					
+					<div class="form-group social-item">
+						<div style="display: flex; gap: 10px;">
+							<input type="text" placeholder="Platform Name (e.g. Instagram)" value="Instagram" style="flex: 1;">
+							<input type="url" placeholder="URL" value="https://instagram.com/yourhandle" style="flex: 2;">
+							<button type="button" class="btn remove-social-btn">×</button>
+						</div>
+					</div>
+				</div>
+
+				<button type="button" class="btn" id="add-social-btn">Add Social Link</button>
+                
+                <div class="form-group">
+                    <label for="copyright-text">Copyright Text</label>
+                    <input type="text" id="copyright-text" value="© 2025 Seed Collective. All rights reserved.">
+                </div>
+
+				<div class="form-group">
+					<label for="enable-legal-disclaimer">Legal Disclaimer</label>
+					<select id="enable-legal-disclaimer">
+						<option value="true" selected>Show legal disclaimer</option>
+						<option value="false">Hide legal disclaimer</option>
+					</select>
+					<p class="help-text">Displays legal disclaimer about product sales on all pages</p>
+				</div>
+
+				<div class="form-group">
+					<label for="legal-disclaimer-text">Disclaimer Text</label>
+					<textarea id="legal-disclaimer-text" rows="4" placeholder="Enter your legal disclaimer text...">[Company Name] sells products for souvenir and collectible purposes only. Products may not be legal in some countries and [Company Name] strongly advises you not to take products where they are not permitted. [Company Name] does not accept any responsibility for any violation of customs regulations or local laws. All responsibility falls on the purchaser to determine the legal status of products in their country of residence. Any information provided is for educational purposes only.</textarea>
+					<p class="help-text">Customize the legal disclaimer text for your business. Use [Company Name] as placeholder.</p>
+				</div>
+            </div>            
+            <!-- Colors & Theme Section -->
+            <div class="config-section" id="colors-section">
+                <h2>Colors & Theme</h2>
+                
+                <h3>Preset Themes</h3>
+                <div class="preset-themes">
+                    <div class="preset-theme active" data-theme="cosmic" title="Cosmic Theme">
+                        <div class="theme-colors">
+                            <div class="theme-color" style="background-color: #003B6F;"></div>
+                            <div class="theme-color" style="background-color: #00FF9F;"></div>
+                            <div class="theme-color" style="background-color: #6A0DAD;"></div>
+                            <div class="theme-color" style="background-color: #0A0E17;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="preset-theme" data-theme="nature" title="Nature Theme">
+                        <div class="theme-colors">
+                            <div class="theme-color" style="background-color: #2E7D32;"></div>
+                            <div class="theme-color" style="background-color: #8BC34A;"></div>
+                            <div class="theme-color" style="background-color: #795548;"></div>
+                            <div class="theme-color" style="background-color: #1B2D1C;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="preset-theme" data-theme="sunset" title="Sunset Theme">
+                        <div class="theme-colors">
+                            <div class="theme-color" style="background-color: #FF5722;"></div>
+                            <div class="theme-color" style="background-color: #FFC107;"></div>
+                            <div class="theme-color" style="background-color: #9C27B0;"></div>
+                            <div class="theme-color" style="background-color: #1F1414;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="preset-theme" data-theme="ocean" title="Ocean Theme">
+                        <div class="theme-colors">
+                            <div class="theme-color" style="background-color: #0277BD;"></div>
+                            <div class="theme-color" style="background-color: #4FC3F7;"></div>
+                            <div class="theme-color" style="background-color: #00796B;"></div>
+                            <div class="theme-color" style="background-color: #0A1519;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Custom Colors</h3>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="primary-color" value="#003B6F">
+                        <span>Primary Color</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="secondary-color" value="#00FF9F">
+                        <span>Secondary Color</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="tertiary-color" value="#6A0DAD">
+                        <span>Tertiary Color</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="highlight-color" value="#FFD700">
+                        <span>Highlight Color</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="alert-color" value="#FF5722">
+                        <span>Alert Color</span>
+                    </div>
+                </div>
+
+				<div class="form-group">
+					<label for="background-image">Main Background Image URL</label>
+					<input type="text" id="background-image" placeholder="hero-background.jpg">
+					<p class="help-text">Full-screen background image that stays fixed during scrolling</p>
+				</div>
+
+				<div class="form-group">
+					<label for="section-image">Background Texture URL</label>
+					<input type="text" id="section-image" placeholder="metal-texture.jpg">
+					<p class="help-text">Tiled texture pattern for the site background</p>
+				</div>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="background-color" value="#0A0E17">
+                        <span>Background Color</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="color-input">
+                        <input type="color" id="text-color" value="#FFFFFF">
+                        <span>Text Color</span>
+                    </div>
+                </div>
+                
+                <h3>Fonts</h3>
+                
+                <div class="form-group">
+                    <label for="heading-font">Heading Font</label>
+                    <select id="heading-font">
+                        <option value="'Orbitron', sans-serif" selected>Orbitron</option>
+                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                        <option value="'Raleway', sans-serif">Raleway</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                        <option value="'Oswald', sans-serif">Oswald</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="body-font">Body Font</label>
+                    <select id="body-font">
+                        <option value="'Exo 2', sans-serif" selected>Exo 2</option>
+                        <option value="'Lato', sans-serif">Lato</option>
+                        <option value="'Open Sans', sans-serif">Open Sans</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                        <option value="'Nunito', sans-serif">Nunito</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Terminology Section -->
+            <div class="config-section" id="terminology-section">
+                <h2>Terminology</h2>
+                <p>Customize the terms used throughout your site.</p>
+								
+				<h3>Product Categories</h3>
+								
+				<div class="form-group">
+					<label for="category1">Category 1</label>
+					<input type="text" id="category1" value="Premium Collection">
+					<p class="help-text">Your primary product category</p>
+				</div>
+								
+				<div class="form-group">
+					<label for="category2">Category 2</label>
+					<input type="text" id="category2" value="Signature Series">
+					<p class="help-text">Your secondary product category</p>
+				</div>
+								
+				<div class="form-group">
+					<label for="category3">Category 3</label>
+					<input type="text" id="category3" value="Hybrid Collection">
+					<p class="help-text">Your tertiary product category</p>
+				</div>
+                
+                <h3>Product Terms</h3>
+                
+                <div class="form-group">
+                    <label for="productTerm">Product Term (Singular)</label>
+                    <input type="text" id="productTerm" value="Collectible">
+                </div>
+                
+                <div class="form-group">
+                    <label for="productPluralTerm">Product Term (Plural)</label>
+                    <input type="text" id="productPluralTerm" value="Collectibles">
+                </div>
+                
+                <div class="form-group">
+                    <label for="packTerm">Pack Term</label>
+                    <input type="text" id="packTerm" value="Collection Pack">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cartTerm">Cart Term</label>
+                    <input type="text" id="cartTerm" value="Collection Box">
+                </div>
+                
+                <h3>Status Labels</h3>
+                
+                <div class="form-group">
+                    <label for="soldOutLabel">Sold Out Label</label>
+                    <input type="text" id="soldOutLabel" value="UNAVAILABLE">
+                </div>
+                
+                <div class="form-group">
+                    <label for="comingSoonLabel">Coming Soon Label</label>
+                    <input type="text" id="comingSoonLabel" value="COMING SOON">
+                </div>
+            </div>
+            
+            <!-- Visual Effects Section -->
+            <div class="config-section" id="effects-section">
+                <h2>Visual Effects</h2>
+                
+                <h3>Background Effect</h3>
+                
+                <div class="form-group">
+                    <label for="bg-effect-enabled">Enable Background Effect</label>
+                    <select id="bg-effect-enabled">
+                        <option value="true" selected>Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bg-effect-type">Background Effect Type</label>
+                    <select id="bg-effect-type">
+                        <option value="stars" selected>Stars</option>
+                        <option value="bubbles">Bubbles</option>
+                        <option value="leaves">Leaves</option>
+                        <option value="particles">Particles</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bg-effect-intensity">Effect Intensity</label>
+                    <select id="bg-effect-intensity">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                
+                <h3>Special Feature</h3>
+                
+                <div class="form-group">
+                    <label for="special-feature-enabled">Enable Special Feature</label>
+                    <select id="special-feature-enabled">
+                        <option value="true" selected>Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="special-feature-type">Special Feature Type</label>
+                    <select id="special-feature-type">
+                        <option value="floatingObject" selected>Floating Object</option>
+                        <option value="parallax">Parallax Effect</option>
+                        <option value="spotlight">Spotlight Effect</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="floating-object-group">
+                    <label for="floating-object-image">Floating Object Image URL</label>
+                    <input type="url" id="floating-object-image" value="img/floating-object.png">
+                </div>
+                
+                <div class="form-group">
+                    <label for="special-feature-behavior">Behavior</label>
+                    <select id="special-feature-behavior">
+                        <option value="teleport" selected>Teleport</option>
+                        <option value="float">Float</option>
+                        <option value="pulse">Pulse</option>
+                    </select>
+                </div>
+            </div>
+
+			<div class="config-section" id="images-section">
+				<h2>Image Generator</h2>
+				<p>Generate custom images for your site using AI. Enter a description and create images instantly.</p>
+				
+				<div class="form-group">
+					<label for="image-type">Image Type</label>
+					<select id="image-type">
+						<option value="logo">Logo (200x200)</option>
+						<option value="hero">Hero Background (1190x500)</option>
+						<option value="social">Social Preview (1200x630)</option>
+						<option value="product1">Product 1 (600x600)</option>
+						<option value="product2">Product 2 (600x600)</option>
+						<option value="product3">Product 3 (600x600)</option>
+						<option value="product4">Product 4 (600x600)</option>
+						<option value="product5">Product 5 (600x600)</option>
+						<option value="product6">Product 6 (600x600)</option>
+						<option value="detail">Detail Image (800x600)</option>
+						<option value="floating">Floating Object (100x100)</option>
+					</select>
+				</div>
+				
+				<div class="form-group">
+					<label for="image-prompt">Image Description</label>
+					<textarea id="image-prompt" rows="3" placeholder="Describe the image you want to generate..."></textarea>
+				</div>
+				
+				<div class="form-group">
+					<button type="button" class="btn btn-primary" id="generate-image-btn">Generate Image</button>
+				</div>
+				
+				<div class="generated-image-container" style="display: none;">
+					<h3>Generated Image</h3>
+					<div class="image-preview">
+						<img id="generated-image" src="" alt="Generated Image" style="width: auto; height: auto; max-width: 100%;">
+					</div>
+					<div class="button-group" style="margin-top: 10px;">
+						<button type="button" class="btn" id="try-again-btn">Try Again</button>
+						<button type="button" class="btn btn-primary" id="save-image-btn">Use This Image</button>
+					</div>
+				</div>
+				
+				<div class="image-library">
+					<h3>Your Image Library</h3>
+					<p>Images you've generated and saved will appear here.</p>
+					<div class="image-grid" id="image-library-grid"></div>
+				</div>
+			</div>
+
+			<div class="config-section" id="products-section">
+				<h2>Product Management</h2>
+				<p>Add, edit, and remove products from your site.</p>
+				
+				<div id="product-list">
+					<!-- Product items will be dynamically inserted here -->
+				</div>
+				
+				<div class="button-group" style="margin-top: 20px;">
+					<button type="button" class="btn" id="add-product-btn">Add New Product</button>
+				</div>
+				
+				<!-- Product Editor Modal -->
+				<div id="product-editor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
+					<div style="background: var(--background-color); max-width: 90%; margin: 30px auto; padding: 30px; border-radius: 10px; border: 2px solid var(--tertiary-color); box-shadow: 0 0 30px rgba(106, 13, 173, 0.5);">
+						<h3 style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--primary-color); padding-bottom: 10px;">
+							<span style="font-family: var(--font-heading); color: var(--secondary-color); text-shadow: 0 0 5px var(--secondary-color);">Edit Product</span>
+							<span class="close-modal" id="cancel-product-btn" style="position: relative; top: 0; right: 0;">&times;</span>
+						</h3>
+						
+						<!-- Two-column layout with solid background -->
+						<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; position: relative; z-index: 10;">
+							<!-- Left Column - Basic Info -->
+							<div style="background: rgba(10, 14, 23, 0.9); padding: 15px; border-radius: 10px; border: 1px solid var(--primary-color);">
+								<div class="form-group">
+									<label for="product-id" style="color: var(--secondary-color);">Product ID</label>
+									<input type="text" id="product-id" placeholder="product-1">
+									<p style="font-size: 0.8rem; color: #aaa; margin-top: 3px;">Unique identifier for this product. Use only letters, numbers, and hyphens.</p>
+								</div>
+								
+								<div class="form-group">
+									<label for="product-name" style="color: var(--secondary-color);">Product Name</label>
+									<input type="text" id="product-name" placeholder="Premium Collection Alpha">
+								</div>
+								
+								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+									<div class="form-group">
+										<label for="product-type" style="color: var(--secondary-color);">Product Type</label>
+										<select id="product-type">
+											<!-- Category options will be dynamically populated -->
+										</select>
+									</div>
+									
+									<div class="form-group">
+										<label for="product-status" style="color: var(--secondary-color);">Status</label>
+										<select id="product-status">
+											<option value="available">Available</option>
+											<option value="sold-out">Sold Out</option>
+											<option value="coming-soon">Coming Soon</option>
+										</select>
+									</div>
+								</div>
+								
+								<div class="form-group">
+									<label for="product-delivery" style="color: var(--secondary-color);">Delivery Type</label>
+									<select id="product-delivery">
+										<option value="physical" selected>Physical Product</option>
+										<option value="digital">Digital Product/Download</option>
+									</select>
+								</div>
+
+								<div class="form-group" id="digital-content-group" style="display: none;">
+									<label for="digital-content" style="color: var(--secondary-color);">Digital Content URL/Link</label>
+									<input type="url" id="digital-content" placeholder="https://example.com/download/file.zip">
+									<p style="font-size: 0.8rem; color: #aaa; margin-top: 3px;">For digital products, enter the download link or access URL.</p>
+								</div>
+								
+								<div class="form-group">
+									<label for="product-image" style="color: var(--secondary-color);">Main Image URL</label>
+									<input type="url" id="product-image" placeholder="product1.jpg">
+									<p style="font-size: 0.8rem; color: #aaa; margin-top: 3px;">Use the Image Generator tab to create product images first.</p>
+								</div>
+								
+								<div class="form-group">
+									<label for="product-description" style="color: var(--secondary-color);">Description</label>
+									<textarea id="product-description" rows="4" placeholder="Product description..."></textarea>
+								</div>
+								
+								<!-- Additional Images Section -->
+								<div class="form-group">
+									<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+										<label style="margin-bottom: 0; color: var(--secondary-color);">Additional Images</label>
+										<button type="button" id="add-image-btn" style="background: var(--primary-color); color: var(--text-color); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;">+ Add Image</button>
+									</div>
+									<div id="additional-images" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--primary-color); border-radius: 5px; padding: 5px; background: rgba(0, 0, 0, 0.2);"></div>
+								</div>
+							</div>
+
+							<!-- Add this after the Additional Images section in the product editor modal -->
+							<div class="form-group">
+								<label for="product-enable-hover" style="color: var(--secondary-color);">Enable Hover Image</label>
+								<select id="product-enable-hover">
+									<option value="false" selected>No</option>
+									<option value="true">Yes</option>
+								</select>
+								<p style="font-size: 0.8rem; color: #aaa; margin-top: 3px;">Show an additional image when hovering over product card.</p>
+							</div>
+
+							<div class="form-group" id="hover-image-group" style="display: none;">
+								<label for="product-hover-image" style="color: var(--secondary-color);">Hover Image</label>
+								<select id="product-hover-image" style="width: 100%;">
+									<option value="">— First Additional Image —</option>
+									<!-- Options will be populated dynamically -->
+								</select>
+								<p style="font-size: 0.8rem; color: #aaa; margin-top: 3px;">If not selected, the first additional image will be used.</p>
+							</div>
+							
+							<!-- Right Column - Details and Options -->
+							<div style="background: rgba(10, 14, 23, 0.9); padding: 15px; border-radius: 10px; border: 1px solid var(--primary-color);">
+								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+									<div class="form-group">
+										<label for="product-variety" style="color: var(--secondary-color);">Variety</label>
+										<input type="text" id="product-variety" placeholder="Premium">
+									</div>
+									
+									<div class="form-group">
+										<label for="product-rating" style="color: var(--secondary-color);">Rating</label>
+										<input type="text" id="product-rating" placeholder="4.5/5">
+									</div>
+								</div>
+								
+								<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+									<div class="form-group">
+										<label for="product-origin" style="color: var(--secondary-color);">Origin</label>
+										<input type="text" id="product-origin" placeholder="Imported">
+									</div>
+									
+									<div class="form-group">
+										<label for="product-rarity" style="color: var(--secondary-color);">Rarity</label>
+										<input type="text" id="product-rarity" placeholder="Standard">
+									</div>
+								</div>
+								
+								<div class="form-group">
+									<label for="product-details" style="color: var(--secondary-color);">Details</label>
+									<textarea id="product-details" rows="4" placeholder="Additional details..."></textarea>
+								</div>
+								
+								<div class="form-group">
+									<label for="product-notes" style="color: var(--secondary-color);">Notes</label>
+									<textarea id="product-notes" rows="4" placeholder="Special notes..."></textarea>
+								</div>
+								
+								<!-- Pack Options Section -->
+								<div id="pack-options-section">
+									<h4 style="margin: 15px 0 5px 0; font-size: 1rem; color: var(--secondary-color); font-family: var(--font-heading);">Pack Options</h4>
+									<div id="pack-options" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--primary-color); border-radius: 5px; padding: 5px; background: rgba(0, 0, 0, 0.2);"></div>
+									
+									<button type="button" id="add-pack-btn" style="background: var(--primary-color); color: var(--text-color); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px;">Add Pack Option</button>
+								</div>
+							</div>
+						</div>
+						
+						<!-- Footer with Save Button -->
+						<div style="margin-top: 20px; display: flex; justify-content: flex-end; padding-top: 15px; border-top: 1px solid var(--primary-color);">
+							<button type="button" id="save-product-btn" style="background: linear-gradient(45deg, var(--primary-color), var(--tertiary-color)); color: var(--text-color); border: none; padding: 12px 25px; border-radius: 25px; font-family: var(--font-heading); font-size: 1rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);">Save Product</button>
+						</div>
+					</div>
+				</div>
+            </div>
+			
+            <!-- Advanced Section -->
+            <div class="config-section" id="advanced-section">
+                <h2>Advanced Settings</h2>
+
+				<div class="form-group">
+					<label for="enable-age-check">Enable Age Verification</label>
+					<select id="enable-age-check">
+						<option value="false" selected>No</option>
+						<option value="true">Yes</option>
+					</select>
+					<p class="help-text">Show an age verification popup when visitors first enter the site. Visitors must confirm they are 21+ to continue.</p>
+				</div>
+
+				<div class="form-group" id="age-check-settings" style="display: none;">
+					<label for="age-check-minimum">Minimum Age Required</label>
+					<input type="number" id="age-check-minimum" value="21" min="13" max="99">
+					<p class="help-text">Minimum age required to enter the site (default: 21)</p>
+				</div>
+
+				<div class="form-group" id="age-check-redirect" style="display: none;">
+					<label for="age-redirect-url">Redirect URL for Under-Age Users</label>
+					<input type="url" id="age-redirect-url" value="https://www.google.com" placeholder="https://www.google.com">
+					<p class="help-text">URL to redirect users who don't meet the age requirement</p>
+				</div>
+
+				<div class="form-group">
+					<label for="enable-shop">Enable Shopping Cart</label>
+					<select id="enable-shop">
+						<option value="true" selected>Yes</option>
+						<option value="false">No</option>
+					</select>
+					<p class="help-text">Enable or disable the shopping cart functionality. Useful for sites that only offer digital products or information.</p>
+				</div>
+                
+                <div class="form-group">
+                    <label for="enable-local-storage">Enable Local Storage for Cart</label>
+                    <select id="enable-local-storage">
+                        <option value="true" selected>Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="checkout-method">Checkout Method</label>
+                    <select id="checkout-method">
+                        <option value="email" selected>Email</option>
+                        <option value="form">Form Submission</option>
+                        <option value="external">External Checkout</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="external-checkout-group">
+                    <label for="external-checkout-url">External Checkout URL</label>
+                    <input type="url" id="external-checkout-url" value="">
+                    <p class="help-text">Only needed if checkout method is "External"</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="analytics-id">Google Analytics ID (Optional)</label>
+                    <input type="text" id="analytics-id" value="">
+                </div>
+                
+				<h3>Navigation</h3>
+				<p>Add or edit navigation items. First item is always Home.</p>
+
+				<div class="form-group">
+					<label>Available Page Sections:</label>
+					<div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+						<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;">
+							<div><code>#products</code> - Product collections</div>
+							<div><code>#about</code> - About page</div>
+							<div><code>#strain-tree-section</code> - Genetics explorer</div>
+							<div><code>#partner-showcase</code> - Partners section</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="nav-items">
+					<div class="form-group nav-item">
+						<div style="display: flex; gap: 10px;">
+							<input type="text" placeholder="Name" value="Premium Collections" style="flex: 1;">
+							<input type="text" placeholder="URL" value="#products" style="flex: 1;">
+							<button type="button" class="btn remove-nav-btn">×</button>
+						</div>
+					</div>
+					
+					<div class="form-group nav-item">
+						<div style="display: flex; gap: 10px;">
+							<input type="text" placeholder="Name" value="About" style="flex: 1;">
+							<input type="text" placeholder="URL" value="#about" style="flex: 1;">
+							<button type="button" class="btn remove-nav-btn">×</button>
+						</div>
+					</div>
+					
+					<div class="form-group nav-item">
+						<div style="display: flex; gap: 10px;">
+							<input type="text" placeholder="Name" value="Contact" style="flex: 1;">
+							<input type="text" placeholder="URL" value="#contact" style="flex: 1;">
+							<button type="button" class="btn remove-nav-btn">×</button>
+						</div>
+					</div>
+				</div>
+
+				<p class="help-text" style="margin-top: 10px; color: #aaa; font-size: 0.9rem;">
+					Use the section codes above for internal navigation, or full URLs (https://...) for external links.
+				</p>
+                
+				<button type="button" class="btn" id="add-nav-btn">Add Navigation Item</button>
+
+				<div class="form-group">
+					<label>Quick Add Common Sections:</label>
+					<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+						<button type="button" class="btn quick-nav-btn" data-name="Collections" data-url="#products">+ Collections</button>
+						<button type="button" class="btn quick-nav-btn" data-name="Genetics Explorer" data-url="#strain-tree-section">+ Genetics Explorer</button>
+						<button type="button" class="btn quick-nav-btn" data-name="Partners" data-url="#partner-showcase">+ Partners</button>
+						<button type="button" class="btn quick-nav-btn" data-name="About" data-url="#about">+ About</button>
+					</div>
+				</div>
+
+				<h3>Friends</h3>
+                <p>Add or edit friend site links.</p>
+                
+				<div id="friend-links">
+					<div class="form-group friend-item default-friend">
+						<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+							<input type="text" placeholder="Name" value="StrainNavigator" style="flex: 1;" readonly>
+							<input type="text" placeholder="URL" value="https://www.strainnavigator.com/" style="flex: 1;" readonly>
+							<button type="button" class="btn" disabled style="opacity: 0.5; cursor: not-allowed;">×</button>
+						</div>
+						<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+							<input type="text" placeholder="Logo/Image URL (optional)" value="img/friends/Strain_Navigator_Logo.jpg" style="flex: 1;" readonly>
+							<input type="text" placeholder="Description (optional)" value="Premium strain database" style="flex: 1;" readonly>
+						</div>
+					</div>
+				</div>
+
+				<p class="help-text" style="margin-top: 10px; color: #aaa; font-size: 0.9rem;">
+					Use '#section-name' for sections on the main page (e.g., #products, #about) or full URLs for external links.
+				</p>
+                
+                <button type="button" class="btn" id="add-friend-btn">Add Friend Link</button>								
+
+				<h3>Partner/Friend Links Display</h3>
+
+				<div class="form-group">
+					<label for="friend-links-enabled">Enable Partner Showcase Section</label>
+					<select id="friend-links-enabled">
+						<option value="false" selected>No - Footer links only</option>
+						<option value="true">Yes - Add partner showcase section</option>
+					</select>
+					<p class="help-text">Add a visual partner section above the footer</p>
+				</div>
+
+				<div class="form-group" id="friend-links-style-group" style="display: none;">
+					<label for="friend-links-style">Partner Showcase Style</label>
+					<select id="friend-links-style">
+						<option value="cards">Enhanced Cards</option>
+						<option value="logos">Logo Strip</option>
+						<option value="banner">Sliding Banner</option>
+						<option value="grid">Compact Grid</option>
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="footer-friend-links">Footer Friend Links</label>
+					<select id="footer-friend-links">
+						<option value="true" selected>Show text links in footer</option>
+						<option value="false">Hide footer friend links</option>
+					</select>
+					<p class="help-text">Keep the current text links in footer section</p>
+				</div>
+
+            </div>
+
+			<!-- STRAIN TREE SECTIONS -->
+			<div class="config-section" id="strainTree-section">
+				<h2>Strain Tree Visualization</h2>
+				<p>Configure the interactive strain tree visualization that will appear after your product cards.</p>
+				
+				<div class="form-group">
+					<label for="enable-strain-tree">Enable Strain Tree</label>
+					<select id="enable-strain-tree">
+						<option value="true">Yes</option>
+						<option value="false" selected>No</option>
+					</select>
+					<p class="help-text">Enable or disable the strain tree visualization section.</p>
+				</div>
+				
+				<div class="form-group">
+					<label for="strain-tree-title">Section Title</label>
+					<input type="text" id="strain-tree-title" value="Strain Genetics Explorer">
+				</div>
+				
+				<div class="form-group">
+					<label for="strain-tree-description">Section Description</label>
+					<textarea id="strain-tree-description" rows="2">Explore the genetic relationships between our strains.</textarea>
+				</div>
+				
+				<div class="form-group">
+					<label for="strain-data-path">Strain Data JSON Path</label>
+					<input type="text" id="strain-data-path" value="data/straindata.json">
+					<p class="help-text">Path to the JSON file containing strain tree data. Default: data/straindata.json</p>
+				</div>
+			</div>
+
+			<!-- About Section -->
+			<div class="config-section" id="about-section">
+				<h2>About Page Content</h2>
+				<p>Configure the content that will be displayed when visitors click the "About" link.</p>
+				
+				<div class="form-group">
+					<label for="about-title">About Page Title</label>
+					<input type="text" id="about-title" value="About Seed Collective">
+				</div>
+				
+				<div class="form-group">
+					<label for="about-subtitle">Subtitle (Optional)</label>
+					<input type="text" id="about-subtitle" value="Our Story and Mission">
+				</div>
+				
+				<div class="form-group">
+					<label for="about-image">About Image URL</label>
+					<input type="url" id="about-image" value="img/about.jpg">
+					<p class="help-text">Use the Image Generator tab to create an About page image first.</p>
+				</div>
+				
+				<div class="form-group">
+					<label for="about-description">Main Description</label>
+					<textarea id="about-description" rows="6">Founded in 2024, Seed Collective is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.</textarea>
+				</div>
+				
+				<h3>Team Members (Optional)</h3>
+				<div id="team-members">
+					<div class="team-member form-group">
+						<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+							<div style="flex: 1;">
+								<label for="team-name-1">Name</label>
+								<input type="text" id="team-name-1" placeholder="Team Member Name">
+							</div>
+							<div style="flex: 1;">
+								<label for="team-title-1">Title/Position</label>
+								<input type="text" id="team-title-1" placeholder="Founder & CEO">
+							</div>
+						</div>
+						<div style="display: flex; gap: 10px;">
+							<div style="flex: 2;">
+								<label for="team-bio-1">Bio</label>
+								<textarea id="team-bio-1" rows="3" placeholder="Short biography..."></textarea>
+							</div>
+							<div style="flex: 1;">
+								<label for="team-image-1">Image URL (Optional)</label>
+								<input type="url" id="team-image-1" placeholder="team1.jpg">
+							</div>
+							<button type="button" class="btn remove-team-btn" style="height: 40px; margin-top: 24px;">×</button>
+						</div>
+					</div>
+				</div>
+				
+				<button type="button" class="btn" id="add-team-btn" style="margin-top: 10px;">Add Team Member</button>
+				
+				<h3>History Timeline (Optional)</h3>
+				<div id="history-items">
+					<div class="history-item form-group">
+						<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+							<div style="flex: 1;">
+								<label for="history-year-1">Year/Date</label>
+								<input type="text" id="history-year-1" placeholder="2024">
+							</div>
+							<div style="flex: 3;">
+								<label for="history-title-1">Event Title</label>
+								<input type="text" id="history-title-1" placeholder="Company Founded">
+							</div>
+							<button type="button" class="btn remove-history-btn">×</button>
+						</div>
+						<div>
+							<label for="history-description-1">Event Description</label>
+							<textarea id="history-description-1" rows="2" placeholder="Short description of the event..."></textarea>
+						</div>
+					</div>
+				</div>
+				
+				<button type="button" class="btn" id="add-history-btn" style="margin-top: 10px;">Add Timeline Event</button>
+				
+				<h3>Additional Content Sections (Optional)</h3>
+				<div id="about-sections">
+					<div class="about-section-item form-group">
+						<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+							<input type="text" placeholder="Section Title" style="flex: 1;">
+							<button type="button" class="btn remove-section-btn">×</button>
+						</div>
+						<textarea rows="4" placeholder="Section content..."></textarea>
+					</div>
+				</div>
+				
+				<button type="button" class="btn" id="add-section-btn" style="margin-top: 10px;">Add Content Section</button>
+			</div>			
+			
+			<!-- Support Section -->
+			<div class="config-section" id="support-section">
+				<h2 class="text-3xl font-bold text-green-400 mb-4">Support the Project</h2>
+				
+				<div class="support-content grid grid-cols-1 md:grid-cols-2 gap-6">
+					<!-- About Project Column -->
+					<div class="about-column">
+						<h3 class="text-xl font-semibold text-blue-400 mb-3">About This Project</h3>
+						<p class="mb-4">This powerful site configuration tool is part of a larger suite of free website solutions designed to help businesses and individuals create professional web presences without coding knowledge.</p>
+						
+							<div class="project-features p-3 border border-purple-500 rounded-lg bg-opacity-20 bg-purple-900 mb-4">
+								<h4 class="text-lg font-medium text-purple-300 mb-2">What You're Getting For Free:</h4>
+								<ul style="list-style-type: disc; margin-left: 30px !important; padding-left: 0 !important;" class="space-y-1 text-gray-300">
+									<li>Customizable website templates</li>
+									<li>E-mail driven E-commerce capabilities</li>
+									<li>Real-time preview of site changes</li>
+									<li>No coding required</li>
+									<li>Planned Updates and Expansion</li>
+								</ul>
+							</div>
+						</div>
+					
+					<!-- Support Column -->
+					<div class="support-column">
+						<h3 class="text-xl font-semibold text-blue-400 mb-3">Support Options</h3>
+						<p class="mb-4">Thank you for your support, Hopefully these tools will always remain free!<br>
+						Your kindness encourages continued development and new features.<br>Here's how you can help:</p>
+						
+							<a href="https://paypal.me/ReverendDrTolerant?country.x=US&locale.x=en_US" target="_blank" style="display: inline-block; background-color: #006400; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; text-align: center; margin-bottom: 10px; margin-left: 0; transition: background-color 0.3s ease;" onmouseover="this.style.backgroundColor='#008800'" onmouseout="this.style.backgroundColor='#006400'">
+								CONTRIBUTE ANY AMOUNT
+							</a>
+							<br>
+							<a href="mailto:contact@sitepackages.com" class="support-button flex items-center justify-between p-3 border border-blue-500 rounded-lg hover:bg-blue-900 hover:bg-opacity-30 transition duration-300">
+								<span class="font-medium text-blue-400"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%234682B4' viewBox='0 0 16 16'%3E%3Cpath d='M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z'/%3E%3C/svg%3E" alt="Email" style="margin-right: 5px; display: inline;"> Contact Us</span>
+							</a>
+						</div>
+					</div>
+				
+				<!-- Developer Info - MOVED INSIDE support-section div -->
+				<div class="developer-info mt-6 p-4 border border-purple-600 rounded-lg bg-opacity-10 bg-purple-800">
+					<h3 class="text-lg font-medium text-purple-300 mb-2">Created By</h3>
+					<p class="mb-3">This tool is part of a suite of web solutions by the developer behind:</p>
+					<div class="site-links flex flex-wrap gap-4 mb-3">
+						<a href="https://www.ai-ministries.com/" target="_blank" class="site-link px-3 py-2 bg-purple-900 bg-opacity-50 rounded border border-purple-500 hover:bg-opacity-70 transition">WWW.AI-MINISTRIES.COM</a>
+						<a href="https://www.strainnavigator.com/" target="_blank" class="site-link px-3 py-2 bg-purple-900 bg-opacity-50 rounded border border-purple-500 hover:bg-opacity-70 transition">WWW.STRAINNAVIGATOR.COM</a>
+					</div>
+					<p class="text-gray-400 text-sm">User testimonials and support have helped make these tools what they are today.</p>
+				</div>
+				
+				<!-- Pollinations Info - MOVED INSIDE support-section div -->
+				<div class="developer-info mt-6 p-4 border border-purple-600 rounded-lg bg-opacity-10 bg-purple-800">
+					<h3 class="text-lg font-medium text-purple-300 mb-2">Credits</h3>
+					<p class="mb-3">Text and Image generations provided by <a href='https://www.pollinations.ai/' target="_blank">Pollinations.ai</a></p>
+				</div>
+			</div>
+			
+        </div>
+        
+		<div class="button-group">
+			<button type="button" class="btn btn-primary" id="generate-btn">Generate Configuration</button>
+			<button type="button" class="btn btn-primary" id="preview-btn">Enter Preview Mode</button>
+			<button type="button" class="btn btn-primary" id="save-btn">Save Configuration</button>
+		</div>
+        
+        <div id="output-container" style="display: none;">
+            <h2>Generated Configuration</h2>
+            <p>Copy this code and save it as "config.js" in your site's /js/ directory.</p>
+            <div class="code-output" id="config-output"></div>
+            <button class="copy-btn" id="copy-btn">Copy to Clipboard</button>
+        </div>
+    </div>
+    
+    <script>
+	
+        document.addEventListener('DOMContentLoaded', function() {
+		
+			// Show/hide age check settings based on selection
+			document.getElementById('enable-age-check').addEventListener('change', function() {
+				const ageCheckSettings = document.getElementById('age-check-settings');
+				const ageCheckRedirect = document.getElementById('age-check-redirect');
+				
+				if (this.value === 'true') {
+					ageCheckSettings.style.display = 'block';
+					ageCheckRedirect.style.display = 'block';
+				} else {
+					ageCheckSettings.style.display = 'none';
+					ageCheckRedirect.style.display = 'none';
+				}
+			});
+		
+            // Tab switching
+            document.querySelectorAll('.config-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.config-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Hide all tab content
+                    document.querySelectorAll('.config-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // Show corresponding tab content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-section`).classList.add('active');
+                });
+            });
+
+			// Add tab switching event listener
+			document.querySelectorAll('.config-tab').forEach(tab => {
+				tab.addEventListener('click', function() {
+					// Check if this is the Images tab
+					if (this.getAttribute('data-tab') === 'images') {
+						// Reload the saved images with our modified function
+						// This will check if we're in a different config and clear if needed
+						loadSavedImages();
+					}
+				});
+			});
+
+			// Show/hide Digital Content URL based on delivery type
+			document.getElementById('product-delivery').addEventListener('change', function() {
+				const digitalContentGroup = document.getElementById('digital-content-group');
+				
+				// Get pack options elements
+				const packOptionsHeader = document.querySelector('#product-editor-modal h4');
+				const packOptionsDiv = document.getElementById('pack-options');
+				const addPackBtn = document.getElementById('add-pack-btn');
+				
+				if (this.value === 'digital') {
+					digitalContentGroup.style.display = 'block';
+					
+					// Hide pack options section
+					if (packOptionsHeader) packOptionsHeader.style.display = 'none';
+					if (packOptionsDiv) packOptionsDiv.style.display = 'none';
+					if (addPackBtn) addPackBtn.style.display = 'none';
+				} else {
+					digitalContentGroup.style.display = 'none';
+					
+					// Show pack options section
+					if (packOptionsHeader) packOptionsHeader.style.display = 'block';
+					if (packOptionsDiv) packOptionsDiv.style.display = 'block';
+					if (addPackBtn) addPackBtn.style.display = 'block';
+				}
+			});
+            
+            // Preset theme selection
+            document.querySelectorAll('.preset-theme').forEach(theme => {
+                theme.addEventListener('click', function() {
+                    // Remove active class from all themes
+                    document.querySelectorAll('.preset-theme').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked theme
+                    this.classList.add('active');
+                    
+                    // Apply theme colors
+                    const themeId = this.getAttribute('data-theme');
+                    applyTheme(themeId);
+                });
+            });
+
+			// Show/hide partner showcase style options
+			document.getElementById('friend-links-enabled').addEventListener('change', function() {
+				const styleGroup = document.getElementById('friend-links-style-group');
+				
+				if (this.value === 'true') {
+					styleGroup.style.display = 'block';
+				} else {
+					styleGroup.style.display = 'none';
+				}
+			});
+
+			// Add friend link
+			document.getElementById('add-friend-btn').addEventListener('click', function() {
+				const friendLinks = document.getElementById('friend-links');
+				
+				const newItem = document.createElement('div');
+				newItem.className = 'form-group friend-item';
+				newItem.innerHTML = `
+					<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+						<input type="text" placeholder="Friend Name" style="flex: 1;">
+						<input type="text" placeholder="URL" style="flex: 1;">
+						<button type="button" class="btn remove-friend-btn">×</button>
+					</div>
+					<div style="display: flex; gap: 10px;">
+						<input type="text" placeholder="Logo/Image URL (optional)" style="flex: 1;">
+						<input type="text" placeholder="Description (optional)" style="flex: 1;">
+					</div>
+				`;
+				
+				friendLinks.appendChild(newItem);
+				
+				// Add event listener to remove button
+				newItem.querySelector('.remove-friend-btn').addEventListener('click', function() {
+					friendLinks.removeChild(newItem);
+				});
+			});
+
+			// Remove friend link
+			document.querySelector('#friend-links').addEventListener('click', function(e) {
+				if (e.target.classList.contains('remove-friend-btn')) {
+					const friendItem = e.target.closest('.form-group');
+					if (friendItem) {
+						friendItem.remove();
+						
+						// Save the current state after removal
+						const currentLinks = [];
+						document.querySelectorAll('#friend-links .form-group').forEach(item => {
+							const inputs = item.querySelectorAll('input');
+							if (inputs.length >= 2) {
+								currentLinks.push({
+									name: inputs[0].value, 
+									url: inputs[1].value
+								});
+							}
+						});
+						localStorage.setItem('friendLinks', JSON.stringify(currentLinks));
+					}
+				}
+			});
+
+			// Add social link
+			document.getElementById('add-social-btn').addEventListener('click', function() {
+				const socialLinks = document.getElementById('social-links');
+				
+				const newItem = document.createElement('div');
+				newItem.className = 'form-group social-item';
+				newItem.innerHTML = `
+					<div style="display: flex; gap: 10px;">
+						<input type="text" placeholder="Platform Name" style="flex: 1;">
+						<input type="url" placeholder="URL" style="flex: 2;">
+						<button type="button" class="btn remove-social-btn">×</button>
+					</div>
+				`;
+				
+				socialLinks.appendChild(newItem);
+				
+				// Add event listener to remove button
+				newItem.querySelector('.remove-social-btn').addEventListener('click', function() {
+					socialLinks.removeChild(newItem);
+				});
+			});
+
+			// Remove social link
+			document.querySelector('#social-links').addEventListener('click', function(e) {
+				if (e.target.classList.contains('remove-social-btn')) {
+					const socialItem = e.target.closest('.form-group');
+					if (socialItem) {
+						socialItem.remove();
+					}
+				}
+			});
+
+			// Function to add a new team member
+			function addTeamMember(member = null) {
+				const teamMembers = document.getElementById('team-members');
+				const memberCount = teamMembers.querySelectorAll('.team-member').length + 1;
+				
+				const teamMember = document.createElement('div');
+				teamMember.className = 'team-member form-group';
+				
+				teamMember.innerHTML = `
+					<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+						<div style="flex: 1;">
+							<label for="team-name-${memberCount}">Name</label>
+							<input type="text" id="team-name-${memberCount}" value="${member ? member.name : ''}" placeholder="Team Member Name">
+						</div>
+						<div style="flex: 1;">
+							<label for="team-title-${memberCount}">Title/Position</label>
+							<input type="text" id="team-title-${memberCount}" value="${member ? member.title : ''}" placeholder="Founder & CEO">
+						</div>
+					</div>
+					<div style="display: flex; gap: 10px;">
+						<div style="flex: 2;">
+							<label for="team-bio-${memberCount}">Bio</label>
+							<textarea id="team-bio-${memberCount}" rows="3" placeholder="Short biography...">${member ? member.bio : ''}</textarea>
+						</div>
+						<div style="flex: 1;">
+							<label for="team-image-${memberCount}">Image URL (Optional)</label>
+							<input type="url" id="team-image-${memberCount}" value="${member ? member.image : ''}" placeholder="team1.jpg">
+						</div>
+						<button type="button" class="btn remove-team-btn" style="height: 40px; margin-top: 24px;">×</button>
+					</div>
+				`;
+				
+				// Add event listener to remove button
+				const removeBtn = teamMember.querySelector('.remove-team-btn');
+				removeBtn.addEventListener('click', function() {
+					teamMembers.removeChild(teamMember);
+				});
+				
+				teamMembers.appendChild(teamMember);
+			}
+
+			// Function to add a new history timeline item
+			function addHistoryItem(item = null) {
+				const historyItems = document.getElementById('history-items');
+				const itemCount = historyItems.querySelectorAll('.history-item').length + 1;
+				
+				const historyItem = document.createElement('div');
+				historyItem.className = 'history-item form-group';
+				
+				historyItem.innerHTML = `
+					<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+						<div style="flex: 1;">
+							<label for="history-year-${itemCount}">Year/Date</label>
+							<input type="text" id="history-year-${itemCount}" value="${item ? item.year : ''}" placeholder="2024">
+						</div>
+						<div style="flex: 3;">
+							<label for="history-title-${itemCount}">Event Title</label>
+							<input type="text" id="history-title-${itemCount}" value="${item ? item.title : ''}" placeholder="Company Founded">
+						</div>
+						<button type="button" class="btn remove-history-btn">×</button>
+					</div>
+					<div>
+						<label for="history-description-${itemCount}">Event Description</label>
+						<textarea id="history-description-${itemCount}" rows="2" placeholder="Short description of the event...">${item ? item.description : ''}</textarea>
+					</div>
+				`;
+				
+				// Add event listener to remove button
+				const removeBtn = historyItem.querySelector('.remove-history-btn');
+				removeBtn.addEventListener('click', function() {
+					historyItems.removeChild(historyItem);
+				});
+				
+				historyItems.appendChild(historyItem);
+			}
+
+			// Function to add a new about section
+			function addAboutSection(section = null) {
+				const aboutSections = document.getElementById('about-sections');
+				
+				const sectionItem = document.createElement('div');
+				sectionItem.className = 'about-section-item form-group';
+				
+				sectionItem.innerHTML = `
+					<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+						<input type="text" placeholder="Section Title" value="${section ? section.title : ''}" style="flex: 1;">
+						<button type="button" class="btn remove-section-btn">×</button>
+					</div>
+					<textarea rows="4" placeholder="Section content...">${section ? section.content : ''}</textarea>
+				`;
+				
+				// Add event listener to remove button
+				const removeBtn = sectionItem.querySelector('.remove-section-btn');
+				removeBtn.addEventListener('click', function() {
+					aboutSections.removeChild(sectionItem);
+				});
+				
+				aboutSections.appendChild(sectionItem);
+			}
+
+			// Initialize About section
+			function initializeAboutSection() {
+				// Load saved data if available
+				const savedAbout = localStorage.getItem('aboutSection');
+				if (savedAbout) {
+					const aboutData = JSON.parse(savedAbout);
+					
+					// Set basic fields
+					document.getElementById('about-title').value = aboutData.title || 'About Seed Collective';
+					document.getElementById('about-subtitle').value = aboutData.subtitle || 'Our Story and Mission';
+					document.getElementById('about-image').value = aboutData.image || 'img/about.jpg';
+					document.getElementById('about-description').value = aboutData.description || '';
+					
+					// Load team members
+					const teamMembers = document.getElementById('team-members');
+					teamMembers.innerHTML = ''; // Clear existing
+					
+					if (aboutData.teamMembers && aboutData.teamMembers.length > 0) {
+						aboutData.teamMembers.forEach(member => {
+							addTeamMember(member);
+						});
+					} else {
+						// Add one empty team member form
+						addTeamMember();
+					}
+					
+					// Load history items
+					const historyItems = document.getElementById('history-items');
+					historyItems.innerHTML = ''; // Clear existing
+					
+					if (aboutData.historyItems && aboutData.historyItems.length > 0) {
+						aboutData.historyItems.forEach(item => {
+							addHistoryItem(item);
+						});
+					} else {
+						// Add one empty history item form
+						addHistoryItem();
+					}
+					
+					// Load additional sections
+					const aboutSections = document.getElementById('about-sections');
+					aboutSections.innerHTML = ''; // Clear existing
+					
+					if (aboutData.additionalSections && aboutData.additionalSections.length > 0) {
+						aboutData.additionalSections.forEach(section => {
+							addAboutSection(section);
+						});
+					} else {
+						// Add one empty section form
+						addAboutSection();
+					}
+				}
+				
+				// Add event listeners
+				document.getElementById('add-team-btn').addEventListener('click', function() {
+					addTeamMember();
+				});
+				
+				document.getElementById('add-history-btn').addEventListener('click', function() {
+					addHistoryItem();
+				});
+				
+				document.getElementById('add-section-btn').addEventListener('click', function() {
+					addAboutSection();
+				});
+			}
+
+			function saveFriendLinks() {
+				const friendLinksContainer = document.getElementById('friend-links');
+				const friendLinks = [];
+				
+				// Gather only the current links in the DOM
+				friendLinksContainer.querySelectorAll('.form-group').forEach(item => {
+					const inputs = item.querySelectorAll('input');
+					if (inputs.length >= 2) {
+						friendLinks.push({
+							name: inputs[0].value,
+							url: inputs[1].value
+						});
+					}
+				});
+				
+				// Save to localStorage, overwriting previous data
+				localStorage.setItem('friendLinks', JSON.stringify(friendLinks));
+			}
+
+			// Image Generator functionality
+			document.getElementById('generate-image-btn').addEventListener('click', function() {
+				const imageType = document.getElementById('image-type').value;
+				const imagePrompt = document.getElementById('image-prompt').value.trim();
+				
+				generateImage(imageType, imagePrompt);
+			});
+
+			// Save image button
+			document.getElementById('save-image-btn').addEventListener('click', function() {
+				const imageType = document.getElementById('image-type').value;
+				const imageUrl = document.getElementById('generated-image').src;
+				
+				// Generate a filename based on the type
+				let filename;
+				switch(imageType) {
+					case 'logo':
+						filename = 'logo.jpg';
+						break;
+					case 'hero':
+						filename = 'hero-bg.jpg';
+						break;
+					case 'product1':
+					case 'product2':
+					case 'product3':
+					case 'product4':
+					case 'product5':
+					case 'product6':
+						// Use the number directly from the image type
+						const productNum = imageType.replace('product', '');
+						filename = `product${productNum}.jpg`;
+						break;
+					case 'detail':
+						// Find product and detail number
+						const detailElements = document.querySelectorAll('[data-image-type="detail"]');
+						const productDetailNum = Math.floor(detailElements.length / 4) + 1;
+						const detailNum = (detailElements.length % 4) + 1;
+						filename = `product${productDetailNum}-detail${detailNum}.jpg`;
+						break;
+					case 'floating':
+						filename = 'floating-object.png';
+						break;
+					default:
+						filename = 'image.jpg';
+				}
+				
+				// Add to image library
+				addToImageLibrary(imageUrl, filename, imageType);
+				
+				// Alert user
+				alert(`Image saved as ${filename}. You can download it from your image library.`);
+			});
+
+			// Product Management Functions
+			function initializeProductManagement() {
+				// Load saved products from localStorage or use default
+				let savedProducts = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+				
+				// If no saved products, use a minimal set of defaults
+				if (Object.keys(savedProducts).length === 0) {
+					savedProducts = {
+						'product-1': {
+							id: 'product-1',
+							name: 'Premium Collectible 1',
+							type: 'Premium Collection',
+							status: 'available',
+							image: 'img/product1.jpg',
+							additionalImages: [],
+							description: 'This is a premium collectible with exceptional qualities.',
+							variety: 'Premium',
+							rating: '4.5/5',
+							origin: 'Imported',
+							details: 'Detailed information about this premium collectible.',
+							notes: 'Special notes about this premium collectible.',
+							packOptions: [
+								{ size: '3 Pack', regularPrice: 35, salePrice: 30 },
+								{ size: '5 Pack', regularPrice: 50, salePrice: 45 }
+							]
+						}
+					};
+					localStorage.setItem('siteProducts', JSON.stringify(savedProducts));
+				}
+				
+				// Render product list in the UI
+				renderProductList(savedProducts);
+				
+				// Set up add product button
+				document.getElementById('add-product-btn').addEventListener('click', function() {
+					openProductEditor();
+				});
+			}
+
+			// Render product list in the UI
+			function renderProductList(products) {
+				const productList = document.getElementById('product-list');
+				productList.innerHTML = '';
+				
+				// Convert to array and ensure display order
+				const productsArray = Object.values(products);
+				
+				// Sort products by displayOrder if it exists
+				productsArray.sort((a, b) => {
+					// Default to end of list if displayOrder is not set
+					const orderA = a.displayOrder !== undefined ? a.displayOrder : 999;
+					const orderB = b.displayOrder !== undefined ? b.displayOrder : 999;
+					return orderA - orderB;
+				});
+				
+				productsArray.forEach((product, index) => {
+					let imagePath = product.image;
+					if (!imagePath && product.additionalImages && product.additionalImages.length > 0) {
+						imagePath = product.additionalImages[0];
+					}
+					
+					if (imagePath && !imagePath.startsWith('img/') && !imagePath.startsWith('/') && !imagePath.startsWith('http')) {
+						imagePath = 'img/' + imagePath;
+					}
+					
+					if (!imagePath) {
+						imagePath = 'img/placeholder.jpg';
+					}
+					
+					let statusHTML;
+					
+					if (product.status === 'available') {
+						statusHTML = '<span style="background-color: #00FF9F; color: #0A0E17; padding: 3px 8px; border-radius: 3px; font-weight: bold;">AVAILABLE</span>';
+					} else if (product.status === 'sold-out') {
+						statusHTML = '<span style="background-color: #FF5722; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold;">SOLD OUT</span>';
+					} else {
+						statusHTML = '<span style="background-color: #6A0DAD; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold;">COMING SOON</span>';
+					}
+					
+					// Add visibility indicator and reordering controls
+					const visibilityStatus = product.hidden ? 
+						'<span style="background-color: #888; color: white; padding: 3px 8px; border-radius: 3px; margin-right: 5px;">HIDDEN</span>' : 
+						'<span style="background-color: #4CAF50; color: white; padding: 3px 8px; border-radius: 3px; margin-right: 5px;">VISIBLE</span>';
+					
+					const productItem = document.createElement('div');
+					productItem.className = 'product-item';
+					productItem.innerHTML = `
+						<div style="display: flex; justify-content: space-between; align-items: center; 
+									background: rgba(10, 14, 23, 0.8); padding: 15px; margin-bottom: 10px; 
+									border-radius: 5px; border: 1px solid var(--primary-color);">
+							<div style="display: flex; align-items: center; flex: 1;">
+								<span class="product-order" style="margin-right: 10px; font-weight: bold; min-width: 30px;">#${product.displayOrder || index + 1}</span>
+								<img src="${imagePath}" style="width: 50px; height: 50px; object-fit: cover; 
+														 border-radius: 5px; margin-right: 15px; 
+														 vertical-align: middle;">
+								<span style="font-weight: bold;">${product.name}</span>
+							</div>
+							<div style="display: flex; align-items: center;">
+								${visibilityStatus}
+								${statusHTML}
+								<div class="order-controls" style="margin: 0 10px;">
+									<button class="btn move-up-btn" data-product-id="${product.id}" style="margin-right: 5px;" title="Move Up">
+										↑
+									</button>
+									<button class="btn move-down-btn" data-product-id="${product.id}" style="margin-right: 5px;" title="Move Down">
+										↓
+									</button>
+								</div>
+								<button class="btn toggle-visibility-btn" data-product-id="${product.id}" style="margin-right: 5px;">
+									${product.hidden ? 'Show' : 'Hide'}
+								</button>
+								<button class="btn edit-product-btn" data-product-id="${product.id}" style="margin-right: 5px;">
+									Edit
+								</button>
+								<button class="btn delete-product-btn" data-product-id="${product.id}">
+									Delete
+								</button>
+							</div>
+						</div>
+					`;
+					
+					productList.appendChild(productItem);
+				});
+				
+				// Add event listeners for edit and delete buttons
+				document.querySelectorAll('.edit-product-btn').forEach(btn => {
+					btn.addEventListener('click', function() {
+						const productId = this.getAttribute('data-product-id');
+						const products = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+						openProductEditor(products[productId]);
+					});
+				});
+				
+				document.querySelectorAll('.delete-product-btn').forEach(btn => {
+					btn.addEventListener('click', function() {
+						const productId = this.getAttribute('data-product-id');
+						deleteProduct(productId);
+					});
+				});
+				
+				// Add event listeners for visibility toggle
+				document.querySelectorAll('.toggle-visibility-btn').forEach(btn => {
+					btn.addEventListener('click', function() {
+						const productId = this.getAttribute('data-product-id');
+						toggleProductVisibility(productId);
+					});
+				});
+				
+				// Add event listeners for order controls
+				document.querySelectorAll('.move-up-btn').forEach(btn => {
+					btn.addEventListener('click', function(e) {
+						e.stopPropagation();
+						const productId = this.getAttribute('data-product-id');
+						moveProductUp(productId);
+					});
+				});
+				
+				document.querySelectorAll('.move-down-btn').forEach(btn => {
+					btn.addEventListener('click', function(e) {
+						e.stopPropagation();
+						const productId = this.getAttribute('data-product-id');
+						moveProductDown(productId);
+					});
+				});
+			}
+
+			function toggleProductVisibility(productId) {
+				const products = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+				
+				if (products[productId]) {
+					// Toggle the hidden flag
+					products[productId].hidden = !products[productId].hidden;
+					
+					// Save updated products
+					localStorage.setItem('siteProducts', JSON.stringify(products));
+					
+					// Re-render product list
+					renderProductList(products);
+				}
+			}
+
+			function moveProductUp(productId) {
+				const products = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+				
+				// Convert to array and ensure display order is set
+				const productsArray = Object.values(products);
+				
+				// Make sure all products have displayOrder
+				productsArray.forEach((product, index) => {
+					if (product.displayOrder === undefined) {
+						product.displayOrder = index + 1;
+					}
+				});
+				
+				// Sort by current display order
+				productsArray.sort((a, b) => a.displayOrder - b.displayOrder);
+				
+				// Find the product to move
+				const productIndex = productsArray.findIndex(p => p.id === productId);
+				
+				if (productIndex > 0) {
+					// Swap display orders with the product above it
+					const temp = productsArray[productIndex].displayOrder;
+					productsArray[productIndex].displayOrder = productsArray[productIndex - 1].displayOrder;
+					productsArray[productIndex - 1].displayOrder = temp;
+					
+					// Update the products object
+					productsArray.forEach(product => {
+						products[product.id] = product;
+					});
+					
+					// Save updated products
+					localStorage.setItem('siteProducts', JSON.stringify(products));
+					
+					// Re-render product list
+					renderProductList(products);
+				}
+			}
+
+			function moveProductDown(productId) {
+				const products = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+				
+				// Convert to array and ensure display order is set
+				const productsArray = Object.values(products);
+				
+				// Make sure all products have displayOrder
+				productsArray.forEach((product, index) => {
+					if (product.displayOrder === undefined) {
+						product.displayOrder = index + 1;
+					}
+				});
+				
+				// Sort by current display order
+				productsArray.sort((a, b) => a.displayOrder - b.displayOrder);
+				
+				// Find the product to move
+				const productIndex = productsArray.findIndex(p => p.id === productId);
+				
+				if (productIndex < productsArray.length - 1) {
+					// Swap display orders with the product below it
+					const temp = productsArray[productIndex].displayOrder;
+					productsArray[productIndex].displayOrder = productsArray[productIndex + 1].displayOrder;
+					productsArray[productIndex + 1].displayOrder = temp;
+					
+					// Update the products object
+					productsArray.forEach(product => {
+						products[product.id] = product;
+					});
+					
+					// Save updated products
+					localStorage.setItem('siteProducts', JSON.stringify(products));
+					
+					// Re-render product list
+					renderProductList(products);
+				}
+			}
+
+			function setupDeliveryTypeHandler() {
+				const productDelivery = document.getElementById('product-delivery');
+				const digitalContentGroup = document.getElementById('digital-content-group');
+				const packOptionsSection = document.getElementById('pack-options-section');
+				
+				if (productDelivery) {
+					// Clear existing listeners to prevent duplicates
+					const newProductDelivery = productDelivery.cloneNode(true);
+					if (productDelivery.parentNode) {
+						productDelivery.parentNode.replaceChild(newProductDelivery, productDelivery);
+					}
+					
+					newProductDelivery.addEventListener('change', function() {
+						if (this.value === 'digital') {
+							// For digital products
+							if (digitalContentGroup) digitalContentGroup.style.display = 'block';
+							if (packOptionsSection) packOptionsSection.style.display = 'none';
+						} else {
+							// For physical products
+							if (digitalContentGroup) digitalContentGroup.style.display = 'none';
+							if (packOptionsSection) packOptionsSection.style.display = 'block';
+						}
+					});
+					
+					// Trigger the change event to set initial state
+					const changeEvent = new Event('change');
+					newProductDelivery.dispatchEvent(changeEvent);
+				}
+			}
+
+			// Function to update product type dropdown with current terminology
+			function updateProductTypeDropdown() {
+				const productTypeSelect = document.getElementById('product-type');
+				if (!productTypeSelect) return;
+				
+				// Clear existing options
+				productTypeSelect.innerHTML = '';
+				
+				// Get current category terminology from inputs
+				const category1 = document.getElementById('category1').value || 'Category 1';
+				const category2 = document.getElementById('category2').value || 'Category 2';
+				const category3 = document.getElementById('category3').value || 'Category 3';
+				
+				// Add options
+				const option1 = document.createElement('option');
+				option1.value = 'category1';
+				option1.textContent = category1;
+				productTypeSelect.appendChild(option1);
+				
+				const option2 = document.createElement('option');
+				option2.value = 'category2';
+				option2.textContent = category2;
+				productTypeSelect.appendChild(option2);
+				
+				const option3 = document.createElement('option');
+				option3.value = 'category3';
+				option3.textContent = category3;
+				productTypeSelect.appendChild(option3);
+			}
+
+			function openProductEditor(product = null) {
+				const modal = document.getElementById('product-editor-modal');
+				if (!modal) {
+					console.error('Product editor modal not found in the DOM');
+					return;
+				}
+
+				// Update product type dropdown with current terminology
+				updateProductTypeDropdown();
+
+				const isNewProduct = !product;
+				
+				// Set form values safely
+				const safeSetValue = (id, value) => {
+					const element = document.getElementById(id);
+					if (element) {
+						element.value = value || '';
+					} else {
+						console.warn(`Element with ID '${id}' not found when setting value`);
+					}
+				};
+				
+				// Set basic product info
+				safeSetValue('product-id', isNewProduct ? `product-${Date.now()}` : product.id);
+				safeSetValue('product-name', isNewProduct ? '' : product.name);
+				safeSetValue('product-status', isNewProduct ? 'available' : product.status);
+				safeSetValue('product-image', isNewProduct ? '' : product.image);
+				safeSetValue('product-description', isNewProduct ? '' : product.description);
+				safeSetValue('product-variety', isNewProduct ? '' : product.variety);
+				safeSetValue('product-rating', isNewProduct ? '' : product.rating);
+				safeSetValue('product-origin', isNewProduct ? '' : product.origin);
+				safeSetValue('product-rarity', isNewProduct ? '' : (product.rarity || ''));
+				safeSetValue('product-details', isNewProduct ? '' : product.details);
+				safeSetValue('product-notes', isNewProduct ? '' : product.notes);
+				safeSetValue('product-enable-hover', isNewProduct ? 'false' : (product.enableHoverImage ? 'true' : 'false'));
+
+				// Set hidden flag - determine if product should be hidden
+				const isHidden = isNewProduct ? false : !!product.hidden;
+				
+				// Create or update the visibility control
+				let visibilityGroup = document.getElementById('product-visibility-group');
+				if (!visibilityGroup) {
+					// Create the element if it doesn't exist
+					visibilityGroup = document.createElement('div');
+					visibilityGroup.id = 'product-visibility-group';
+					visibilityGroup.className = 'form-group';
+					visibilityGroup.innerHTML = `
+						<label for="product-visibility" style="color: var(--secondary-color);">Product Visibility</label>
+						<select id="product-visibility">
+							<option value="visible" ${!isHidden ? 'selected' : ''}>Visible - Show in product list</option>
+							<option value="hidden" ${isHidden ? 'selected' : ''}>Hidden - Keep in database but don't display</option>
+						</select>
+						<p style="font-size: 0.8rem; color: #aaa; margin-top: 3px;">Hidden products are saved but not displayed on your site.</p>
+					`;
+					
+					// Find the right location to insert it - after product ID field
+					const productIdField = document.getElementById('product-id');
+					if (productIdField && productIdField.parentNode) {
+						const parentNode = productIdField.closest('.form-group').parentNode;
+						const productIdGroup = productIdField.closest('.form-group');
+						parentNode.insertBefore(visibilityGroup, productIdGroup.nextSibling);
+					}
+				} else {
+					// If it exists, just update the select value
+					const visibilitySelect = visibilityGroup.querySelector('select');
+					if (visibilitySelect) {
+						visibilitySelect.value = isHidden ? 'hidden' : 'visible';
+					}
+				}
+
+				const enableHoverSelect = document.getElementById('product-enable-hover');
+				const hoverImageGroup = document.getElementById('hover-image-group');
+				if (enableHoverSelect && hoverImageGroup) {
+					if (enableHoverSelect.value === 'true') {
+						hoverImageGroup.style.display = 'block';
+						
+						// Populate the hover image select
+						const hoverImageSelect = document.getElementById('product-hover-image');
+						if (hoverImageSelect) {
+							// Clear existing options except the default one
+							while (hoverImageSelect.options.length > 1) {
+								hoverImageSelect.remove(1);
+							}
+							
+							// Add options for each additional image
+							if (!isNewProduct && product.additionalImages) {
+								product.additionalImages.forEach((img, index) => {
+									const option = document.createElement('option');
+									option.value = img;
+									option.textContent = `Image ${index + 1}: ${img}`;
+									hoverImageSelect.appendChild(option);
+									
+									// Select the current hover image if it exists
+									if (product.hoverImage && product.hoverImage === img) {
+										option.selected = true;
+									}
+								});
+							}
+						}
+					} else {
+						hoverImageGroup.style.display = 'none';
+					}
+				}
+
+				// Set product type
+				const typeSelect = document.getElementById('product-type');
+				if (typeSelect && !isNewProduct) {
+					// Find the correct option for the product type
+					for (let i = 0; i < typeSelect.options.length; i++) {
+						if (typeSelect.options[i].text === product.type) {
+							typeSelect.selectedIndex = i;
+							break;
+						}
+					}
+				}
+				
+				// Set delivery type and digital content
+				const deliverySelect = document.getElementById('product-delivery');
+				if (deliverySelect && !isNewProduct) {
+					deliverySelect.value = product.delivery || 'physical';
+				}
+				safeSetValue('digital-content', isNewProduct ? '' : (product.digitalContent || ''));
+				
+				// !!! CRITICAL: Make sure the pack options section exists in the modal !!!
+				let packOptionsSection = document.getElementById('pack-options-section');
+				
+				// If it doesn't exist, we need to create it
+				if (!packOptionsSection) {
+					console.log("Pack options section not found, creating it");
+					
+					// Find the right column in the modal to append the pack options section
+					const rightColumn = modal.querySelector('.modal-grid').children[1];
+					
+					if (rightColumn) {
+						// Create the pack options section
+						packOptionsSection = document.createElement('div');
+						packOptionsSection.id = 'pack-options-section';
+						packOptionsSection.innerHTML = `
+							<h4 style="margin: 15px 0 5px 0; font-size: 1rem; color: var(--secondary-color); font-family: var(--font-heading);">Pack Options</h4>
+							<div id="pack-options" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--primary-color); border-radius: 5px; padding: 5px; background: rgba(0, 0, 0, 0.2);"></div>
+							<button type="button" id="add-pack-btn" style="background: var(--primary-color); color: var(--text-color); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-top: 10px;">Add Pack Option</button>
+						`;
+						
+						// Add the pack options section to the right column
+						rightColumn.appendChild(packOptionsSection);
+						
+						// Add event listener to the newly created Add Pack Option button
+						const addPackBtn = packOptionsSection.querySelector('#add-pack-btn');
+						if (addPackBtn) {
+							addPackBtn.addEventListener('click', function() {
+								addPackOption();
+							});
+						}
+					}
+				}
+				
+				// Get the pack options container
+				const packOptionsContainer = document.getElementById('pack-options');
+				if (packOptionsContainer) {
+					// Clear existing pack options
+					packOptionsContainer.innerHTML = '';
+					
+					// Add pack options
+					const packOptions = isNewProduct ? [] : (product.packOptions || []);
+					if (packOptions.length === 0 && (!product || product.delivery !== 'digital')) {
+						// Add a default empty pack option, but only for physical products
+						addPackOption();
+					} else {
+						packOptions.forEach(pack => {
+							addPackOption(pack);
+						});
+					}
+				}
+				
+				// Setup additional images
+				const additionalImagesContainer = document.getElementById('additional-images');
+				if (additionalImagesContainer) {
+					additionalImagesContainer.innerHTML = '';
+					
+					if (!isNewProduct && product.additionalImages && product.additionalImages.length > 0) {
+						product.additionalImages.forEach(imageSrc => {
+							addAdditionalImage(imageSrc);
+						});
+					}
+				}
+				
+				// Handle visibility of sections based on delivery type
+				const currentDeliveryType = deliverySelect ? deliverySelect.value : 'physical';
+				const digitalContentGroup = document.getElementById('digital-content-group');
+				
+				if (currentDeliveryType === 'digital') {
+					if (digitalContentGroup) digitalContentGroup.style.display = 'block';
+					if (packOptionsSection) packOptionsSection.style.display = 'none';
+				} else {
+					if (digitalContentGroup) digitalContentGroup.style.display = 'none';
+					if (packOptionsSection) {
+						packOptionsSection.style.display = 'block';
+						// Force the display with !important to override any other styles
+						packOptionsSection.setAttribute('style', 'display: block !important; margin-top: 15px;');
+					}
+				}
+				
+				// Set up delivery type change handler
+				if (deliverySelect) {
+					// Remove existing listener to prevent duplicates
+					const newDeliverySelect = deliverySelect.cloneNode(true);
+					deliverySelect.parentNode.replaceChild(newDeliverySelect, deliverySelect);
+					
+					newDeliverySelect.addEventListener('change', function() {
+						console.log("Delivery type changed to:", this.value);
+						if (this.value === 'digital') {
+							if (digitalContentGroup) digitalContentGroup.style.display = 'block';
+							if (packOptionsSection) packOptionsSection.style.display = 'none';
+						} else {
+							if (digitalContentGroup) digitalContentGroup.style.display = 'none';
+							if (packOptionsSection) {
+								packOptionsSection.style.display = 'block';
+								// Force the display with !important
+								packOptionsSection.setAttribute('style', 'display: block !important; margin-top: 15px;');
+							}
+						}
+					});
+				}
+				
+				// Set up event handlers for buttons
+				setupProductEditorEventHandlers();
+				
+				// Show modal
+				modal.style.display = 'block';
+				
+				// Debug information to help troubleshoot
+				console.log("Product editor opened", {
+					"product": product,
+					"deliveryType": currentDeliveryType,
+					"packOptionsSectionExists": !!packOptionsSection,
+					"packOptionsSectionDisplay": packOptionsSection ? packOptionsSection.style.display : 'N/A'
+				});
+			}
+
+			function setupHoverImageHandlers() {
+				const enableHoverSelect = document.getElementById('product-enable-hover');
+				const hoverImageGroup = document.getElementById('hover-image-group');
+				
+				if (enableHoverSelect) {
+					enableHoverSelect.addEventListener('change', function() {
+						if (this.value === 'true') {
+							hoverImageGroup.style.display = 'block';
+							updateHoverImageOptions();
+						} else {
+							hoverImageGroup.style.display = 'none';
+						}
+					});
+				}
+			}
+
+			// Function to update hover image options based on available additional images
+			function updateHoverImageOptions() {
+				const hoverImageSelect = document.getElementById('product-hover-image');
+				const additionalImages = [];
+				
+				// Get all additional images from the form
+				document.querySelectorAll('#additional-images input').forEach(input => {
+					if (input.value.trim()) {
+						additionalImages.push(input.value.trim());
+					}
+				});
+				
+				// Clear existing options except the default one
+				while (hoverImageSelect.options.length > 1) {
+					hoverImageSelect.remove(1);
+				}
+				
+				// Add options for each additional image
+				additionalImages.forEach((img, index) => {
+					const option = document.createElement('option');
+					option.value = img;
+					option.textContent = `Image ${index + 1}: ${img}`;
+					hoverImageSelect.appendChild(option);
+				});
+			}
+
+			// Set up all event handlers for the product editor
+			function setupProductEditorEventHandlers() {
+				// Make sure Add Pack Option button has listener
+				const addPackBtn = document.getElementById('add-pack-btn');
+				if (addPackBtn) {
+					// Clear existing listeners to prevent duplicates
+					const newAddPackBtn = addPackBtn.cloneNode(true);
+					if (addPackBtn.parentNode) {
+						addPackBtn.parentNode.replaceChild(newAddPackBtn, addPackBtn);
+					}
+					
+					// Add new listener
+					newAddPackBtn.addEventListener('click', function() {
+						console.log("Add pack button clicked");
+						addPackOption();
+					});
+				}
+				
+				// Other button handlers - Add Image button, etc.
+				const addImageBtn = document.getElementById('add-image-btn');
+				if (addImageBtn) {
+					const newAddImageBtn = addImageBtn.cloneNode(true);
+					if (addImageBtn.parentNode) {
+						addImageBtn.parentNode.replaceChild(newAddImageBtn, addImageBtn);
+					}
+					
+					newAddImageBtn.addEventListener('click', function() {
+						addAdditionalImage();
+					});
+				}
+				
+				// Save Product button
+				const saveProductBtn = document.getElementById('save-product-btn');
+				if (saveProductBtn) {
+					const newSaveProductBtn = saveProductBtn.cloneNode(true);
+					if (saveProductBtn.parentNode) {
+						saveProductBtn.parentNode.replaceChild(newSaveProductBtn, saveProductBtn);
+					}
+					
+					newSaveProductBtn.addEventListener('click', function() {
+						saveProduct();
+					});
+				}
+				
+				// Cancel/Close button
+				const cancelProductBtn = document.getElementById('cancel-product-btn');
+				if (cancelProductBtn) {
+					const newCancelProductBtn = cancelProductBtn.cloneNode(true);
+					if (cancelProductBtn.parentNode) {
+						cancelProductBtn.parentNode.replaceChild(newCancelProductBtn, cancelProductBtn);
+					}
+					
+					newCancelProductBtn.addEventListener('click', function() {
+						document.getElementById('product-editor-modal').style.display = 'none';
+					});
+				}
+			}
+			
+			// Open product modal
+			function openProductModal(product) {
+				const modal = document.getElementById('productModal');
+				
+				document.getElementById('modalTitle').textContent = product.name;
+				
+				// Fix main image path
+				let mainImagePath = product.image;
+				if (!mainImagePath) {
+					// If main image is empty but there are additional images, use the first one
+					if (product.additionalImages && product.additionalImages.length > 0) {
+						mainImagePath = product.additionalImages[0];
+					} else {
+						// Fallback to a placeholder
+						mainImagePath = 'img/placeholder.jpg';
+					}
+				}
+				
+				// Add img/ prefix if it doesn't exist
+				if (mainImagePath && !mainImagePath.startsWith('img/') && !mainImagePath.startsWith('/') && !mainImagePath.startsWith('http')) {
+					mainImagePath = 'img/' + mainImagePath;
+				}
+				
+				document.getElementById('modalImage').src = mainImagePath;
+				document.getElementById('modalImage').alt = product.name;
+				document.getElementById('modalType').textContent = product.type;
+				document.getElementById('modalRating').textContent = product.rating || 'N/A';
+				document.getElementById('modalOrigin').textContent = product.origin || 'Various';
+				document.getElementById('modalRarity').textContent = product.rarity || 'Standard';
+				document.getElementById('modalVariety').textContent = product.variety || 'Premium';
+				document.getElementById('modalDescription').textContent = product.description;
+				document.getElementById('modalDetails').textContent = product.details || 'No additional details available.';
+				document.getElementById('modalNotes').textContent = product.notes || 'No special notes.';
+				
+				// Set up thumbnails gallery
+				const thumbnailsContainer = document.getElementById('modalThumbnails');
+				thumbnailsContainer.innerHTML = '';
+
+				// Add these lines to set the alignment directly
+				thumbnailsContainer.style.display = 'flex';
+				thumbnailsContainer.style.flexWrap = 'wrap';
+				thumbnailsContainer.style.gap = '10px';
+				thumbnailsContainer.style.justifyContent = 'flex-start'; // Left alignment
+				thumbnailsContainer.style.alignItems = 'center';
+				
+				// Add main product image as first thumbnail
+				const mainThumb = document.createElement('div');
+				mainThumb.className = 'modal-thumbnail active';
+				mainThumb.innerHTML = `<img src="${mainImagePath}" alt="Main">`;
+				mainThumb.addEventListener('click', function() {
+					document.getElementById('modalImage').src = mainImagePath;
+					document.querySelectorAll('.modal-thumbnail').forEach(thumb => thumb.classList.remove('active'));
+					this.classList.add('active');
+				});
+				thumbnailsContainer.appendChild(mainThumb);
+				
+				// Add additional images if available
+				if (product.additionalImages && product.additionalImages.length > 0) {
+					product.additionalImages.forEach((imgSrc, index) => {
+						// Fix additional image path
+						let additionalImagePath = imgSrc;
+						if (additionalImagePath && !additionalImagePath.startsWith('img/') && !additionalImagePath.startsWith('/') && !additionalImagePath.startsWith('http')) {
+							additionalImagePath = 'img/' + additionalImagePath;
+						}
+						
+						const thumb = document.createElement('div');
+						thumb.className = 'modal-thumbnail';
+						thumb.innerHTML = `<img src="${additionalImagePath}" alt="Image ${index + 1}">`;
+						thumb.addEventListener('click', function() {
+							document.getElementById('modalImage').src = additionalImagePath;
+							document.querySelectorAll('.modal-thumbnail').forEach(thumb => thumb.classList.remove('active'));
+							this.classList.add('active');
+						});
+						thumbnailsContainer.appendChild(thumb);
+					});
+				}
+				
+				// Handle digital vs physical products differently
+				const packOptionsContainer = document.getElementById('packOptionButtons');
+				packOptionsContainer.innerHTML = '';
+				
+				const packOptionsTitle = document.getElementById('packOptionsTitle');
+				const siteConfig = window.siteConfig;
+				
+				// Check if this is a digital product with a content URL
+				if (product.delivery === 'digital' && product.digitalContent) {
+					// Change title for digital products
+					packOptionsTitle.textContent = `Access Digital Content:`;
+					
+					// Create access button for digital content
+					const accessButton = document.createElement('button');
+					accessButton.className = 'cta-button';
+					accessButton.textContent = `Access ${siteConfig.terminology.productTerm}`;
+					accessButton.style.width = '100%';
+					
+					// Add click handler to open the URL
+					accessButton.addEventListener('click', function() {
+						// Open the digital content URL in a new tab
+						window.open(product.digitalContent, '_blank');
+						
+						// Close the modal
+						modal.style.display = 'none';
+					});
+					
+					packOptionsContainer.appendChild(accessButton);
+				} else {
+					// For physical products, show pack options as before
+					packOptionsTitle.textContent = `Select ${siteConfig.terminology.packTerm} Size:`;
+					
+					if (product.packOptions && product.packOptions.length > 0) {
+						product.packOptions.forEach(pack => {
+							const button = document.createElement('div');
+							button.className = 'pack-option-button';
+							button.setAttribute('data-pack-id', `${product.id}-${pack.size}`);
+							button.innerHTML = `
+								<span class="pack-size">${pack.size}</span>
+								<div class="pack-price">
+									<span class="regular-price">$${pack.regularPrice.toFixed(2)}</span>
+									<span class="sale-price">$${pack.salePrice.toFixed(2)}</span>
+								</div>
+							`;
+							
+							button.addEventListener('click', function() {
+								// Remove 'selected' class from all buttons
+								document.querySelectorAll('.pack-option-button').forEach(btn => {
+									btn.classList.remove('selected');
+								});
+								
+								// Add 'selected' class to clicked button
+								this.classList.add('selected');
+							});
+							
+							packOptionsContainer.appendChild(button);
+						});
+						
+						// Add to cart button
+						const addButton = document.createElement('button');
+						addButton.className = 'cta-button';
+						addButton.id = 'addToCartBtn';
+						addButton.textContent = `Add to ${siteConfig.terminology.cartTerm}`;
+						addButton.style.marginTop = '20px';
+						addButton.style.width = '100%';
+						
+						addButton.addEventListener('click', function() {
+							const selectedPack = document.querySelector('.pack-option-button.selected');
+							
+							if (!selectedPack) {
+								alert(`Please select a ${siteConfig.terminology.packTerm} size`);
+								return;
+							}
+							
+							const packId = selectedPack.getAttribute('data-pack-id');
+							addPackToCart(packId, product);
+						});
+						
+						packOptionsContainer.appendChild(addButton);
+						
+						// Select the first option by default
+						if (packOptionsContainer.querySelector('.pack-option-button')) {
+							packOptionsContainer.querySelector('.pack-option-button').classList.add('selected');
+						}
+					}
+				}
+				
+				// Show modal
+				modal.style.display = 'block';
+			}
+			
+			function addAdditionalImage(imageSrc = '') {
+				const additionalImagesContainer = document.getElementById('additional-images');
+				
+				const imageField = document.createElement('div');
+				imageField.style.cssText = 'display: flex; gap: 10px; margin-bottom: 8px; align-items: center; background: rgba(10, 14, 23, 0.8); padding: 8px; border-radius: 5px;';
+				
+				imageField.innerHTML = `
+					<input type="text" placeholder="Detail image URL (product1-detail1.jpg)" value="${imageSrc}" style="flex: 1; background: rgba(0,0,0,0.2); color: var(--text-color); border: 1px solid var(--primary-color);">
+					<button type="button" class="remove-image-btn" style="height: 26px; width: 26px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: var(--alert-color); color: white; border: none; cursor: pointer; padding: 0; font-size: 14px;">×</button>
+				`;
+				
+				// Add event listener to remove button directly to the new element
+				const removeBtn = imageField.querySelector('.remove-image-btn');
+				removeBtn.addEventListener('click', function() {
+					additionalImagesContainer.removeChild(imageField);
+				});
+				
+				additionalImagesContainer.appendChild(imageField);
+			}
+
+			function saveProduct() {
+				// Get values from form
+				const productId = document.getElementById('product-id').value;
+				const productName = document.getElementById('product-name').value;
+				
+				// Get product type from the selected option's text content
+				const productTypeSelect = document.getElementById('product-type');
+				const selectedOption = productTypeSelect.options[productTypeSelect.selectedIndex];
+				const productType = selectedOption.textContent;
+				
+				const productStatus = document.getElementById('product-status').value;
+				const productDelivery = document.getElementById('product-delivery').value;
+				const digitalContent = document.getElementById('digital-content').value;
+				
+				// Get visibility status (add this)
+				const visibilitySelect = document.getElementById('product-visibility');
+				const isHidden = visibilitySelect ? visibilitySelect.value === 'hidden' : false;
+				
+				// Strip "img/" prefix if it exists
+				let productImage = document.getElementById('product-image').value;
+				if (productImage.startsWith('img/')) {
+					productImage = productImage.substring(4);
+				}
+				
+				const productDescription = document.getElementById('product-description').value;
+				const productVariety = document.getElementById('product-variety').value;
+				const productRating = document.getElementById('product-rating').value;
+				const productOrigin = document.getElementById('product-origin').value;
+				const productRarity = document.getElementById('product-rarity').value;
+				const productDetails = document.getElementById('product-details').value;
+				const productNotes = document.getElementById('product-notes').value;
+				
+				// Validate required fields
+				if (!productId || !productName || !productType) {
+					alert('Please fill in all required fields');
+					return;
+				}
+				
+				// Get additional images - Strip "img/" prefix if it exists
+				const additionalImages = [];
+				document.querySelectorAll('#additional-images input').forEach(input => {
+					if (input.value.trim()) {
+						let additionalImage = input.value.trim();
+						if (additionalImage.startsWith('img/')) {
+							additionalImage = additionalImage.substring(4);
+						}
+						additionalImages.push(additionalImage);
+					}
+				});
+				
+				// Get pack options
+				const packOptions = [];
+				document.querySelectorAll('#pack-options .pack-option').forEach(packEl => {
+					const inputs = packEl.querySelectorAll('input');
+					
+					if (inputs.length >= 3) {
+						const size = inputs[0].value.trim();
+						
+						// Handle the price values properly regardless of format
+						let regularPrice = inputs[1].value.trim();
+						let salePrice = inputs[2].value.trim();
+						
+						// If they're not empty, convert to numbers
+						if (size && regularPrice && salePrice) {
+							// Remove any quotes and convert to numbers
+							regularPrice = Number(regularPrice.replace(/"/g, ''));
+							salePrice = Number(salePrice.replace(/"/g, ''));
+							
+							// Add to pack options
+							packOptions.push({
+								size: size,
+								regularPrice: regularPrice,
+								salePrice: salePrice
+							});
+						}
+					}
+				});
+				
+				// Get products from localStorage
+				const products = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+				
+				// If this is a new product, assign a display order at the end
+				let displayOrder;
+				if (!products[productId]) {
+					// Find the highest existing display order
+					const maxOrder = Object.values(products).reduce((max, product) => {
+						return product.displayOrder !== undefined && product.displayOrder > max ? 
+							product.displayOrder : max;
+					}, 0);
+					
+					// Set new product's order to maxOrder + 1
+					displayOrder = maxOrder + 1;
+				} else {
+					// Keep existing display order
+					displayOrder = products[productId].displayOrder;
+				}
+				
+				// Create or update product - maintain all fields
+				products[productId] = {
+					id: productId,
+					name: productName,
+					type: productType,
+					status: productStatus,
+					delivery: productDelivery,
+					digitalContent: digitalContent,
+					image: productImage,
+					additionalImages: additionalImages,
+					description: productDescription,
+					variety: productVariety,
+					rating: productRating,
+					origin: productOrigin,
+					rarity: productRarity,
+					details: productDetails,
+					notes: productNotes,
+					packOptions: packOptions,
+					enableHoverImage: document.getElementById('product-enable-hover').value === 'true',
+					hoverImage: document.getElementById('product-enable-hover').value === 'true' ? 
+						document.getElementById('product-hover-image').value : '',
+					hidden: isHidden,  // Add the hidden flag
+					displayOrder: displayOrder  // Add the display order
+				};
+				
+				// For debugging - check what's being saved
+				console.log("Saved product:", products[productId]);
+				
+				// Save updated products
+				localStorage.setItem('siteProducts', JSON.stringify(products));
+				
+				// Close modal
+				document.getElementById('product-editor-modal').style.display = 'none';
+				
+				// Re-render product list
+				renderProductList(products);
+			}
+
+			function addPackOption(pack = null) {
+				const packOptionsContainer = document.getElementById('pack-options');
+				if (!packOptionsContainer) {
+					console.error("Pack options container not found!");
+					return;
+				}
+				
+				const packOption = document.createElement('div');
+				packOption.className = 'pack-option';
+				packOption.style.cssText = 'background: rgba(10, 14, 23, 0.8); border: 1px solid var(--primary-color); border-radius: 5px; padding: 10px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: center;';
+				
+				// Format the values with 2 decimal places for display
+				let regularPrice = '';
+				let salePrice = '';
+				
+				if (pack) {
+					// Handle both string and number formats for backward compatibility
+					regularPrice = typeof pack.regularPrice === 'string' ? 
+						pack.regularPrice : 
+						Number(pack.regularPrice).toFixed(2);
+						
+					salePrice = typeof pack.salePrice === 'string' ? 
+						pack.salePrice : 
+						Number(pack.salePrice).toFixed(2);
+				}
+				
+				// Create a more compact layout for the inputs
+				packOption.innerHTML = `
+					<input type="text" placeholder="Size (e.g. 3 Pack)" value="${pack ? pack.size : ''}" style="width: 100%; background: rgba(0,0,0,0.2); color: var(--text-color); border: 1px solid var(--primary-color);">
+					<input type="number" step="0.01" placeholder="Regular Price" value="${regularPrice}" style="width: 100%; background: rgba(0,0,0,0.2); color: var(--text-color); border: 1px solid var(--primary-color);">
+					<input type="number" step="0.01" placeholder="Sale Price" value="${salePrice}" style="width: 100%; background: rgba(0,0,0,0.2); color: var(--text-color); border: 1px solid var(--primary-color);">
+					<button type="button" class="remove-pack-btn" style="height: 30px; width: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; background: var(--alert-color); color: white; border: none; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+				`;
+				
+				// Add event listener to remove button
+				const removeBtn = packOption.querySelector('.remove-pack-btn');
+				removeBtn.addEventListener('click', function() {
+					packOptionsContainer.removeChild(packOption);
+				});
+				
+				packOptionsContainer.appendChild(packOption);
+			}
+
+			// Delete a product
+			function deleteProduct(productId) {
+				if (confirm(`Are you sure you want to delete this product?`)) {
+					const products = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+					
+					// Delete the product
+					delete products[productId];
+					
+					// Save updated products
+					localStorage.setItem('siteProducts', JSON.stringify(products));
+					
+					// Re-render product list
+					renderProductList(products);
+				}
+			}
+
+			function generateImage(imageType, imagePrompt) {
+				if (!imagePrompt) {
+					alert('Please enter a description for the image.');
+					return;
+				}
+
+				const previewContainer = document.querySelector('.image-preview');
+				previewContainer.className = 'image-preview';
+				previewContainer.classList.add(`preview-${imageType}`);
+				
+				// Set dimensions based on image type
+				let width, height;
+				switch(imageType) {
+					case 'logo':
+						width = 200;
+						height = 200;
+						break;
+					case 'hero':
+						width = 1190;
+						height = 500;
+						break;
+					case 'social':
+						width = 1200;
+						height = 630;
+						break;						
+					case 'product1':
+					case 'product2':
+					case 'product3':
+					case 'product4':
+					case 'product5':
+					case 'product6':
+						width = 600;
+						height = 600;
+						break;
+					case 'detail':
+						width = 800;
+						height = 600;
+						break;
+					case 'floating':
+						width = 100;
+						height = 100;
+						break;
+					default:
+						width = 600;
+						height = 600;
+				}
+				
+				// Encode the prompt for URL
+				const encodedPrompt = encodeURIComponent(imagePrompt);
+				
+				// Generate random seed for unique image each time
+				const randomSeed = Math.floor(Math.random() * 1000000);
+				
+				// Generate image URL with random seed to prevent caching
+				const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true&private=true&width=${width}&height=${height}&seed=${randomSeed}`;
+				
+				// Show the generated image
+				const generatedImage = document.getElementById('generated-image');
+				generatedImage.src = imageUrl;
+				
+				// Get the container
+				const container = document.querySelector('.generated-image-container');
+				
+				// Get or create the button group
+				const buttonGroup = container.querySelector('.button-group');
+				
+				// Clear existing buttons and create new ones
+				buttonGroup.innerHTML = `
+					<button type="button" class="btn" id="try-again-btn">Try Again</button>
+					<button type="button" class="btn" id="cancel-image-btn">Cancel</button>
+					<button type="button" class="btn btn-primary" id="save-image-btn">Use This Image</button>
+				`;
+				
+				// Add event listeners to the buttons
+				document.getElementById('try-again-btn').addEventListener('click', function() {
+					const imageType = document.getElementById('image-type').value;
+					const imagePrompt = document.getElementById('image-prompt').value.trim();
+					generateImage(imageType, imagePrompt);
+				});
+				
+				document.getElementById('cancel-image-btn').addEventListener('click', function() {
+					container.style.display = 'none';
+					generatedImage.src = '';
+				});
+				
+				document.getElementById('save-image-btn').addEventListener('click', function() {
+					const imageType = document.getElementById('image-type').value;
+					const imageUrl = document.getElementById('generated-image').src;
+					
+					// Generate a filename based on the type
+					let filename;
+					switch(imageType) {
+						case 'logo':
+							filename = 'logo.jpg';
+							break;
+						case 'hero':
+							filename = 'hero-bg.jpg';
+							break;
+						case 'social':
+							filename = 'social-preview.jpg';
+							break;							
+						case 'product1':
+						case 'product2':
+						case 'product3':
+						case 'product4':
+						case 'product5':
+						case 'product6':
+							const productNum = imageType.replace('product', '');
+							filename = `product${productNum}.jpg`;
+							break;
+						case 'detail':
+							const detailElements = document.querySelectorAll('[data-image-type="detail"]');
+							const productDetailNum = Math.floor(detailElements.length / 4) + 1;
+							const detailNum = (detailElements.length % 4) + 1;
+							filename = `product${productDetailNum}-detail${detailNum}.jpg`;
+							break;
+						case 'floating':
+							filename = 'floating-object.png';
+							break;
+						default:
+							filename = 'image.jpg';
+					}
+					
+					addToImageLibrary(imageUrl, filename, imageType);
+					alert(`Image saved as ${filename}. You can download it from your image library.`);
+				});
+				
+				// Show the container
+				container.style.display = 'block';
+			}
+
+			// Add image to library
+			function addToImageLibrary(imageUrl, filename, type) {
+				const libraryGrid = document.getElementById('image-library-grid');
+				
+				// Check if an item with the same filename already exists
+				const existingItem = document.querySelector(`.library-item[data-filename="${filename}"]`);
+				
+				// Get existing saved images from localStorage
+				let savedImages = JSON.parse(localStorage.getItem('savedImages') || '[]');
+				
+				// Check if image already exists in localStorage
+				const existingImageIndex = savedImages.findIndex(img => img.filename === filename);
+				
+				// Determine the correct filename based on the type
+				if (type.startsWith('product')) {
+					// Extract the product number from the type
+					const productNum = type.replace('product', '');
+					filename = `product${productNum}.jpg`;
+				}
+				
+				// Update the config ID whenever we save a new image
+				const configPath = window.location.pathname;
+				const currentConfigId = configPath.split('/').slice(0, -1).join('/');
+				localStorage.setItem('configImageId', currentConfigId);
+				
+				if (existingItem) {
+					// Update the existing item in the DOM
+					existingItem.querySelector('img').src = imageUrl;
+					
+					// Update in localStorage if it exists there
+					if (existingImageIndex !== -1) {
+						savedImages[existingImageIndex].imageUrl = imageUrl;
+					} else {
+						// Add to localStorage if it's in DOM but not in localStorage
+						savedImages.push({ imageUrl, filename, type });
+					}
+				} else {
+					// Create a new library item for the DOM
+					const libraryItem = document.createElement('div');
+					libraryItem.className = 'library-item';
+					libraryItem.setAttribute('data-image-type', type);
+					libraryItem.setAttribute('data-filename', filename);
+					
+					libraryItem.innerHTML = `
+						<img src="${imageUrl}" alt="${filename}">
+						<div class="library-item-info">
+							<span>${filename}</span>
+							<div class="library-item-actions">
+								<a href="${imageUrl}" download="${filename}" class="download-btn">Download</a>
+								<button class="delete-btn">Delete</button>
+							</div>
+						</div>
+					`;
+					
+					// Add delete functionality
+					const deleteBtn = libraryItem.querySelector('.delete-btn');
+					deleteBtn.addEventListener('click', function() {
+						if (confirm(`Delete ${filename}?`)) {
+							// Remove from DOM
+							libraryItem.remove();
+							
+							// Remove from localStorage
+							const updatedImages = savedImages.filter(img => img.filename !== filename);
+							localStorage.setItem('savedImages', JSON.stringify(updatedImages));
+						}
+					});
+					
+					// Add to grid
+					libraryGrid.appendChild(libraryItem);
+					
+					// Add to localStorage if not already there
+					if (existingImageIndex === -1) {
+						savedImages.push({ imageUrl, filename, type });
+					}
+				}
+				
+				// Save updated images to localStorage
+				localStorage.setItem('savedImages', JSON.stringify(savedImages));
+			}
+
+			function loadSavedImages() {
+				// First, we'll set a unique identifier for this configuration
+				// We'll use the path to uniquely identify different configurations
+				const configPath = window.location.pathname;
+				const currentConfigId = configPath.split('/').slice(0, -1).join('/');
+				
+				// Get the saved config ID
+				const savedConfigId = localStorage.getItem('configImageId');
+				
+				// If the config IDs don't match, clear the saved images
+				if (savedConfigId && savedConfigId !== currentConfigId) {
+					console.log("Detected different configuration path. Clearing saved images.");
+					localStorage.removeItem('savedImages');
+					// Update the config ID
+					localStorage.setItem('configImageId', currentConfigId);
+				} else if (!savedConfigId) {
+					// First time loading, set the config ID
+					localStorage.setItem('configImageId', currentConfigId);
+				}
+				
+				// Now load any saved images (which will be empty if we just cleared them)
+				const savedImages = JSON.parse(localStorage.getItem('savedImages') || '[]');
+				const libraryGrid = document.getElementById('image-library-grid');
+				
+				// Clear existing content
+				libraryGrid.innerHTML = '';
+				
+				// Apply grid layout CSS
+				libraryGrid.style.display = 'grid';
+				libraryGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(150px, 1fr))';
+				libraryGrid.style.gap = '15px';
+				libraryGrid.style.maxHeight = '500px';
+				libraryGrid.style.overflowY = 'auto';
+				libraryGrid.style.padding = '10px';
+				
+				savedImages.forEach(imgData => {
+					// Create library item for each saved image
+					const libraryItem = document.createElement('div');
+					libraryItem.className = 'library-item';
+					libraryItem.setAttribute('data-image-type', imgData.type);
+					libraryItem.setAttribute('data-filename', imgData.filename);
+					
+					libraryItem.innerHTML = `
+						<img src="${imgData.imageUrl}" alt="${imgData.filename}">
+						<div class="library-item-info">
+							<span>${imgData.filename}</span>
+							<div class="library-item-actions">
+								<a href="${imgData.imageUrl}" download="${imgData.filename}" class="download-btn">Download</a>
+								<button class="delete-btn">Delete</button>
+							</div>
+						</div>
+					`;
+					
+					// Add delete functionality
+					const deleteBtn = libraryItem.querySelector('.delete-btn');
+					deleteBtn.addEventListener('click', function() {
+						if (confirm(`Delete ${imgData.filename}?`)) {
+							// Remove from DOM
+							libraryItem.remove();
+							
+							// Remove from localStorage
+							const currentSavedImages = JSON.parse(localStorage.getItem('savedImages') || '[]');
+							const updatedImages = currentSavedImages.filter(img => img.filename !== imgData.filename);
+							localStorage.setItem('savedImages', JSON.stringify(updatedImages));
+						}
+					});
+					
+					// Add to grid
+					libraryGrid.appendChild(libraryItem);
+				});
+			}
+            
+            // Add navigation item
+            document.getElementById('add-nav-btn').addEventListener('click', function() {
+                const navItems = document.getElementById('nav-items');
+                
+                const newItem = document.createElement('div');
+                newItem.className = 'form-group nav-item';
+                newItem.innerHTML = `
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" placeholder="Name" style="flex: 1;">
+                        <input type="text" placeholder="URL" style="flex: 1;">
+                        <button type="button" class="btn remove-nav-btn">×</button>
+                    </div>
+                `;
+                
+                navItems.appendChild(newItem);
+                
+                // Add event listener to remove button
+                    newItem.querySelector('.remove-nav-btn').addEventListener('click', function() {
+                        navItems.removeChild(newItem);
+                    });
+                });
+                
+                // Remove navigation item
+                document.getElementById('nav-items').addEventListener('click', function(e) {
+                    if (e.target.classList.contains('remove-nav-btn')) {
+                        const navItem = e.target.closest('.nav-item');
+                        if (navItem) {
+                            navItem.remove();
+                        }
+                    }
+                });
+
+				// Quick-add navigation buttons
+				document.addEventListener('click', function(e) {
+					if (e.target.classList.contains('quick-nav-btn')) {
+						const name = e.target.getAttribute('data-name');
+						const url = e.target.getAttribute('data-url');
+						
+						// Add new nav item
+						const navItems = document.getElementById('nav-items');
+						const newItem = document.createElement('div');
+						newItem.className = 'form-group nav-item';
+						newItem.innerHTML = `
+							<div style="display: flex; gap: 10px;">
+								<input type="text" placeholder="Name" value="${name}" style="flex: 1;">
+								<input type="text" placeholder="URL" value="${url}" style="flex: 1;">
+								<button type="button" class="btn remove-nav-btn">×</button>
+							</div>
+						`;
+						
+						navItems.appendChild(newItem);
+						
+						// Add event listener to remove button
+						newItem.querySelector('.remove-nav-btn').addEventListener('click', function() {
+							navItems.removeChild(newItem);
+						});
+					}
+				});
+                
+                // Show/hide External Checkout URL based on checkout method
+                document.getElementById('checkout-method').addEventListener('change', function() {
+                    const externalCheckoutGroup = document.getElementById('external-checkout-group');
+                    
+                    if (this.value === 'external') {
+                        externalCheckoutGroup.style.display = 'block';
+                    } else {
+                        externalCheckoutGroup.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide Floating Object Image URL based on special feature type
+                document.getElementById('special-feature-type').addEventListener('change', function() {
+                    const floatingObjectGroup = document.getElementById('floating-object-group');
+                    
+                    if (this.value === 'floatingObject') {
+                        floatingObjectGroup.style.display = 'block';
+                    } else {
+                        floatingObjectGroup.style.display = 'none';
+                    }
+                });
+
+				const tryAgainBtn = safeGetElement('try-again-btn');
+				if (tryAgainBtn) {
+					tryAgainBtn.addEventListener('click', function() {
+						const imageType = safeGetElement('image-type')?.value || 'logo';
+						const imagePrompt = safeGetElement('image-prompt')?.value?.trim() || '';
+						
+						generateImage(imageType, imagePrompt);
+					});
+				}
+                
+                // Generate Configuration
+                document.getElementById('generate-btn').addEventListener('click', function() {
+                    const config = generateConfig();
+                    const configJson = JSON.stringify(config, null, 4);
+                    
+                    const configOutput = document.getElementById('config-output');
+                    configOutput.textContent = `// Seed Collective - Configuration File
+				// Edit this file to customize your site
+
+				const siteConfig = ${configJson};`;
+                    
+                    document.getElementById('output-container').style.display = 'block';
+                });
+                
+                // Copy to Clipboard
+                document.getElementById('copy-btn').addEventListener('click', function() {
+                    const configOutput = document.getElementById('config-output');
+                    const textToCopy = configOutput.textContent;
+                    
+                    navigator.clipboard.writeText(textToCopy).then(function() {
+                        alert('Configuration copied to clipboard!');
+                    }, function() {
+                        alert('Failed to copy to clipboard. Please select and copy manually.');
+                    });
+                });
+                
+				// Preview mode toggle
+				document.getElementById('preview-btn').addEventListener('click', function() {
+					// Generate config object
+					const config = generateConfig();
+					
+					// Save the current scroll position and config
+					localStorage.setItem('configScrollPosition', window.scrollY);
+					localStorage.setItem('previewConfig', JSON.stringify(config));
+					
+					// Add debug for visibility
+					console.log('Saved preview config to localStorage:', config);
+					
+					// Redirect to index.html with a preview parameter
+					window.location.href = 'index.html?preview=true';
+				});
+
+				// Exit preview mode function
+				function exitPreviewMode() {
+					// Hide preview container
+					const previewContainer = document.getElementById('preview-container');
+					if (previewContainer) {
+						previewContainer.style.display = 'none';
+					}
+					
+					// Show config interface
+					document.querySelector('.container').style.display = 'block';
+					
+					// Restore scroll position
+					const scrollPosition = parseInt(localStorage.getItem('configScrollPosition') || '0');
+					window.scrollTo(0, scrollPosition);
+				}
+                
+				// Save Configuration
+				document.getElementById('save-btn').addEventListener('click', function() {
+					const config = generateConfig();
+					const configJson = JSON.stringify(config, null, 4);
+					const configBlob = new Blob([`// Seed Collective - Configuration File
+				// Edit this file to customize your site
+
+				window.siteConfig = ${configJson};`], {type: 'text/javascript'});
+					
+					const downloadLink = document.createElement('a');
+					downloadLink.href = URL.createObjectURL(configBlob);
+					downloadLink.download = 'config.js';
+					downloadLink.click();
+				});
+
+				// Add this to generateConfig function
+				function getAboutSectionConfig() {
+					// Get team members
+					const teamMembers = [];
+					document.querySelectorAll('#team-members .team-member').forEach(memberEl => {
+						const inputs = memberEl.querySelectorAll('input, textarea');
+						
+						// Only add if name is provided
+						if (inputs[0].value.trim()) {
+							teamMembers.push({
+								name: inputs[0].value.trim(),
+								title: inputs[1].value.trim(),
+								bio: inputs[2].value.trim(),
+								image: inputs[3].value.trim()
+							});
+						}
+					});
+					
+					// Get history items
+					const historyItems = [];
+					document.querySelectorAll('#history-items .history-item').forEach(itemEl => {
+						const inputs = itemEl.querySelectorAll('input, textarea');
+						
+						// Only add if year and title are provided
+						if (inputs[0].value.trim() && inputs[1].value.trim()) {
+							historyItems.push({
+								year: inputs[0].value.trim(),
+								title: inputs[1].value.trim(),
+								description: inputs[2].value.trim()
+							});
+						}
+					});
+					
+					// Get additional sections
+					const additionalSections = [];
+					document.querySelectorAll('#about-sections .about-section-item').forEach(sectionEl => {
+						const titleInput = sectionEl.querySelector('input');
+						const contentInput = sectionEl.querySelector('textarea');
+						
+						// Only add if title is provided
+						if (titleInput.value.trim()) {
+							additionalSections.push({
+								title: titleInput.value.trim(),
+								content: contentInput.value.trim()
+							});
+						}
+					});
+					
+					// Save to localStorage for persistence between page loads
+					const aboutData = {
+						title: document.getElementById('about-title').value,
+						subtitle: document.getElementById('about-subtitle').value,
+						image: document.getElementById('about-image').value,
+						description: document.getElementById('about-description').value,
+						teamMembers: teamMembers,
+						historyItems: historyItems,
+						additionalSections: additionalSections
+					};
+					
+					localStorage.setItem('aboutSection', JSON.stringify(aboutData));
+					
+					return aboutData;
+				}
+                
+				function generateConfig() {
+					// Get navigation items
+					const navItems = [];
+					document.querySelectorAll('.nav-item').forEach(item => {
+						const inputs = item.querySelectorAll('input');
+						if (inputs[0].value && inputs[1].value) {
+							navItems.push({
+								name: inputs[0].value,
+								url: inputs[1].value
+							});
+						}
+					});
+					
+					// Get social links
+					const socialLinks = [];
+					document.querySelectorAll('#social-links .form-group').forEach(item => {
+						const inputs = item.querySelectorAll('input');
+						if (inputs[0].value && inputs[1].value) {
+							socialLinks.push({
+								name: inputs[0].value,
+								url: inputs[1].value
+							});
+						}
+					});
+					
+					// Get friend links WITH image and description support
+					const friendLinks = [];
+					document.querySelectorAll('#friend-links .form-group').forEach(item => {
+						const inputs = item.querySelectorAll('input');
+						if (inputs[0].value && inputs[1].value) {
+							friendLinks.push({
+								name: inputs[0].value,
+								url: inputs[1].value,
+								image: inputs[2] ? inputs[2].value : '', // Third input for image
+								description: inputs[3] ? inputs[3].value : '' // Fourth input for description
+							});
+						}
+					});
+					
+					// Get saved products
+					const savedProducts = JSON.parse(localStorage.getItem('siteProducts') || '{}');
+					
+					// Get about section data
+					const aboutData = getAboutSectionConfig();
+					
+					// Get strainTree value properly from the form
+					const strainTreeEnabled = document.getElementById('enable-strain-tree').value;
+					
+					return {
+						site: {
+							name: document.getElementById('site-name').value,
+							tagline: document.getElementById('site-tagline').value,
+							logo: document.getElementById('site-logo').value,                            
+							heroBackground: document.getElementById('hero-background').value,
+							socialPreview: document.getElementById('social-preview').value,
+							showHeroText: document.getElementById('show-hero-text').value === 'true',
+							email: document.getElementById('site-email').value,
+							socialLinks: socialLinks,
+							copyright: document.getElementById('copyright-text').value
+						},
+						colors: {
+							primary: document.getElementById('primary-color').value,
+							secondary: document.getElementById('secondary-color').value,
+							tertiary: document.getElementById('tertiary-color').value,
+							highlight: document.getElementById('highlight-color').value,
+							alert: document.getElementById('alert-color').value,
+							background: document.getElementById('background-color').value,
+							text: document.getElementById('text-color').value
+						},
+						background: {
+							image: document.getElementById('background-image').value,
+							sectionImage: document.getElementById('section-image').value
+						},
+						fonts: {
+							heading: document.getElementById('heading-font').value,
+							body: document.getElementById('body-font').value
+						},
+						terminology: {
+							category1: document.getElementById('category1').value,
+							category2: document.getElementById('category2').value,
+							category3: document.getElementById('category3').value,
+							productTerm: document.getElementById('productTerm').value,
+							productPluralTerm: document.getElementById('productPluralTerm').value,
+							packTerm: document.getElementById('packTerm').value,
+							cartTerm: document.getElementById('cartTerm').value,
+							soldOutLabel: document.getElementById('soldOutLabel').value,
+							comingSoonLabel: document.getElementById('comingSoonLabel').value
+						},
+						effects: {
+							backgroundEffect: {
+								enabled: document.getElementById('bg-effect-enabled').value === 'true',
+								type: document.getElementById('bg-effect-type').value,
+								intensity: document.getElementById('bg-effect-intensity').value
+							},
+							specialFeature: {
+								enabled: document.getElementById('special-feature-enabled').value === 'true',
+								type: document.getElementById('special-feature-type').value,
+								image: document.getElementById('floating-object-image').value,
+								behavior: document.getElementById('special-feature-behavior').value
+							}
+						},                        
+						strainTree: {
+							enabled: document.getElementById('enable-strain-tree').value === 'true',
+							title: document.getElementById('strain-tree-title').value,
+							description: document.getElementById('strain-tree-description').value,
+							dataPath: document.getElementById('strain-data-path').value || 'data/straindata.json'
+						},
+						legal: {
+							enableDisclaimer: document.getElementById('enable-legal-disclaimer').value === 'true',
+							disclaimerText: document.getElementById('legal-disclaimer-text').value
+						},						
+						about: aboutData,
+						products: {
+							defaultStatus: 'available',
+							enableRatings: true,
+							showPackOptions: true,
+							defaultPackOptions: [
+								{ size: '3 Pack', regularPrice: 35, salePrice: 30 },
+								{ size: '5 Pack', regularPrice: 50, salePrice: 45 },
+								{ size: '10 Pack', regularPrice: 95, salePrice: 80 }
+							],
+							items: savedProducts
+						},
+						navigation: navItems,
+						friendLinks: friendLinks,
+						// ADD THESE INSIDE THE RETURN OBJECT:
+						friendLinksShowcase: {
+							enabled: document.getElementById('friend-links-enabled').value === 'true',
+							style: document.getElementById('friend-links-style').value || 'cards',
+							title: 'Friends and Sponsors'
+						},
+						showFooterFriendLinks: document.getElementById('footer-friend-links').value === 'true',
+						advanced: {
+							enableShop: document.getElementById('enable-shop').value === 'true',
+							enableLocalStorage: document.getElementById('enable-local-storage').value === 'true',
+							checkoutMethod: document.getElementById('checkout-method').value,
+							externalCheckoutUrl: document.getElementById('external-checkout-url').value,
+							analyticsId: document.getElementById('analytics-id').value,
+							orderEmail: document.getElementById('order-email').value,
+							enableAgeCheck: document.getElementById('enable-age-check').value === 'true',
+							ageCheckMinimum: parseInt(document.getElementById('age-check-minimum').value) || 21,
+							ageRedirectUrl: document.getElementById('age-redirect-url').value || 'https://www.google.com'
+						}
+					};
+				}
+
+				function renderAboutSection(aboutConfig) {
+					if (!aboutConfig) return;
+					
+					// Set basic content
+					document.getElementById('about-title').textContent = aboutConfig.title || 'About Us';
+					document.getElementById('about-subtitle').textContent = aboutConfig.subtitle || '';
+					
+					// Set image
+					const aboutImage = document.getElementById('about-image');
+					if (aboutConfig.image) {
+						aboutImage.src = aboutConfig.image;
+						aboutImage.alt = aboutConfig.title;
+					} else {
+						// Hide image container if no image provided
+						document.querySelector('.about-image-container').style.display = 'none';
+					}
+					
+					// Set description
+					document.getElementById('about-description').innerHTML = aboutConfig.description ? 
+						formatTextWithParagraphs(aboutConfig.description) : '';
+					
+					// Handle team members
+					const teamSection = document.getElementById('team-section');
+					const teamGrid = document.getElementById('team-members-display');
+					
+					if (aboutConfig.teamMembers && aboutConfig.teamMembers.length > 0) {
+						teamGrid.innerHTML = ''; // Clear existing
+						
+						aboutConfig.teamMembers.forEach(member => {
+							if (!member.name) return; // Skip if no name
+							
+							const memberCard = document.createElement('div');
+							memberCard.className = 'team-member-card';
+							
+							let imageHTML = '';
+							if (member.image) {
+								imageHTML = `<img src="${member.image}" alt="${member.name}" class="team-member-image">`;
+							}
+							
+							memberCard.innerHTML = `
+								${imageHTML}
+								<div class="team-member-info">
+									<div class="team-member-name">${member.name}</div>
+									<div class="team-member-title">${member.title || ''}</div>
+									<div class="team-member-bio">${member.bio || ''}</div>
+								</div>
+							`;
+							
+							teamGrid.appendChild(memberCard);
+						});
+					} else {
+						// Hide team section if no members
+						teamSection.style.display = 'none';
+					}
+					
+					// Handle history timeline
+					const historySection = document.getElementById('history-section');
+					const timelineContainer = document.getElementById('history-timeline');
+					
+					if (aboutConfig.historyItems && aboutConfig.historyItems.length > 0) {
+						timelineContainer.innerHTML = ''; // Clear existing
+						
+						// Sort items by year
+						const sortedItems = [...aboutConfig.historyItems].sort((a, b) => {
+							// Try to parse as numbers first
+							const yearA = parseInt(a.year);
+							const yearB = parseInt(b.year);
+							
+							if (!isNaN(yearA) && !isNaN(yearB)) {
+								return yearA - yearB;
+							}
+							
+							// Fall back to string comparison
+							return a.year.localeCompare(b.year);
+						});
+						
+						sortedItems.forEach(item => {
+							if (!item.year || !item.title) return; // Skip if missing required fields
+							
+							const timelineItem = document.createElement('div');
+							timelineItem.className = 'timeline-item';
+							
+							timelineItem.innerHTML = `
+								<div class="timeline-content">
+									<div class="timeline-year">${item.year}</div>
+									<div class="timeline-title">${item.title}</div>
+									<div class="timeline-description">${item.description || ''}</div>
+								</div>
+							`;
+							
+							timelineContainer.appendChild(timelineItem);
+						});
+					} else {
+						// Hide history section if no items
+						historySection.style.display = 'none';
+					}
+					
+					// Handle additional sections
+					const additionalSectionsContainer = document.getElementById('additional-sections');
+					
+					if (aboutConfig.additionalSections && aboutConfig.additionalSections.length > 0) {
+						additionalSectionsContainer.innerHTML = ''; // Clear existing
+						
+						aboutConfig.additionalSections.forEach(section => {
+							if (!section.title) return; // Skip if no title
+							
+							const sectionEl = document.createElement('div');
+							sectionEl.className = 'about-additional-section';
+							
+							sectionEl.innerHTML = `
+								<h3>${section.title}</h3>
+								<div>${formatTextWithParagraphs(section.content || '')}</div>
+							`;
+							
+							additionalSectionsContainer.appendChild(sectionEl);
+						});
+					} else {
+						// Hide additional sections container if empty
+						additionalSectionsContainer.style.display = 'none';
+					}
+					
+					// Make sure the about section is visible
+					document.getElementById('about').style.display = 'block';
+				}
+
+				// Helper function to format text with paragraphs
+				function formatTextWithParagraphs(text) {
+					if (!text) return '';
+					
+					// Split by double newlines and create paragraphs
+					return text.split(/\n\s*\n/)
+						.map(paragraph => paragraph.trim())
+						.filter(paragraph => paragraph.length > 0)
+						.map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+						.join('');
+				}
+                
+                // Apply theme presets
+                function applyTheme(themeId) {
+                    let primaryColor, secondaryColor, tertiaryColor, highlightColor, alertColor, backgroundColor, textColor;
+                    
+                    switch(themeId) {
+                        case 'cosmic':
+                            primaryColor = '#003B6F';
+                            secondaryColor = '#00FF9F';
+                            tertiaryColor = '#6A0DAD';
+                            highlightColor = '#FFD700';
+                            alertColor = '#FF5722';
+                            backgroundColor = '#0A0E17';
+                            textColor = '#FFFFFF';
+                            break;
+                            
+                        case 'nature':
+                            primaryColor = '#2E7D32';
+                            secondaryColor = '#8BC34A';
+                            tertiaryColor = '#795548';
+                            highlightColor = '#FFC107';
+                            alertColor = '#F44336';
+                            backgroundColor = '#1B2D1C';
+                            textColor = '#FFFFFF';
+                            break;
+                            
+                        case 'sunset':
+                            primaryColor = '#FF5722';
+                            secondaryColor = '#FFC107';
+                            tertiaryColor = '#9C27B0';
+                            highlightColor = '#FFEB3B';
+                            alertColor = '#F44336';
+                            backgroundColor = '#1F1414';
+                            textColor = '#FFFFFF';
+                            break;
+                            
+                        case 'ocean':
+                            primaryColor = '#0277BD';
+                            secondaryColor = '#4FC3F7';
+                            tertiaryColor = '#00796B';
+                            highlightColor = '#26C6DA';
+                            alertColor = '#E53935';
+                            backgroundColor = '#0A1519';
+                            textColor = '#FFFFFF';
+                            break;
+                    }
+                    
+                    // Set color inputs
+                    document.getElementById('primary-color').value = primaryColor;
+                    document.getElementById('secondary-color').value = secondaryColor;
+                    document.getElementById('tertiary-color').value = tertiaryColor;
+                    document.getElementById('highlight-color').value = highlightColor;
+                    document.getElementById('alert-color').value = alertColor;
+                    document.getElementById('background-color').value = backgroundColor;
+                    document.getElementById('text-color').value = textColor;
+                }
+
+				function setupAutoSave() {
+					// Select all input, select, and textarea elements in the config sections
+					const allInputs = document.querySelectorAll('.config-section input, .config-section select, .config-section textarea');
+					
+					// Create a debounce function to avoid saving too frequently
+					function debounce(func, wait) {
+						let timeout;
+						return function(...args) {
+							clearTimeout(timeout);
+							timeout = setTimeout(() => func.apply(this, args), wait);
+						};
+					}
+					
+					// Function to save all form values to localStorage
+					const saveFormValues = debounce(function() {
+						const formValues = {};
+						
+						// Loop through all inputs and save their values - BUT EXCLUDE DYNAMIC FORM ITEMS
+						allInputs.forEach(input => {
+							// Get a unique identifier for each input
+							const id = input.id || input.name;
+							if (id && !input.closest('#social-links') && !input.closest('#nav-items') && !input.closest('#friend-links')) {
+								formValues[id] = input.type === 'checkbox' ? input.checked : input.value;
+							}
+						});
+						
+						// Explicitly save background image fields to ensure they're captured
+						const backgroundImageField = document.getElementById('background-image');
+						const sectionImageField = document.getElementById('section-image');
+						
+						if (backgroundImageField) {
+							formValues['background-image'] = backgroundImageField.value;
+						}
+						
+						if (sectionImageField) {
+							formValues['section-image'] = sectionImageField.value;
+						}
+						
+						// Save navigation items separately
+						const navItems = [];
+						document.querySelectorAll('#nav-items .nav-item').forEach(item => {
+							const inputs = item.querySelectorAll('input');
+							if (inputs.length >= 2) {
+								navItems.push({
+									name: inputs[0].value,
+									url: inputs[1].value
+								});
+							}
+						});
+						formValues['nav-items'] = navItems;
+						
+						// Save social links separately  
+						const socialLinks = [];
+						document.querySelectorAll('#social-links .social-item').forEach(item => {
+							const inputs = item.querySelectorAll('input');
+							if (inputs.length >= 2 && inputs[0].value && inputs[1].value) {
+								socialLinks.push({
+									name: inputs[0].value,
+									url: inputs[1].value
+								});
+							}
+						});
+						formValues['social-links'] = socialLinks;
+						
+						// Save friend links separately with StrainNavigator as the default first link
+						const friendLinks = [];
+						
+						// Always add the default StrainNavigator link first
+						friendLinks.push({
+							name: "StrainNavigator",
+							url: "https://www.strainnavigator.com/"
+						});
+						
+						// Then add other friend links
+						document.querySelectorAll('#friend-links .friend-item').forEach(item => {
+							const inputs = item.querySelectorAll('input');
+							if (inputs.length >= 2 && inputs[0].value && inputs[1].value) {
+								// Skip if duplicate of default
+								if (inputs[0].value === "StrainNavigator" && inputs[1].value === "https://www.strainnavigator.com/") {
+									return;
+								}
+								friendLinks.push({
+									name: inputs[0].value,
+									url: inputs[1].value
+								});
+							}
+						});
+						formValues['friend-links'] = friendLinks;
+						
+						// Save active theme preset
+						const activeTheme = document.querySelector('.preset-theme.active');
+						if (activeTheme) {
+							formValues['active-theme'] = activeTheme.getAttribute('data-theme');
+						}
+						
+						// Save form values to localStorage
+						localStorage.setItem('siteConfigForm', JSON.stringify(formValues));
+						console.log('Form values saved to localStorage');
+					}, 300); // Debounce for 300ms
+					
+					// Add change event listener to all form elements
+					allInputs.forEach(input => {
+						input.addEventListener('change', saveFormValues);
+						input.addEventListener('input', saveFormValues);
+					});
+					
+					// Add specific listeners for background image fields to ensure they're saved
+					const backgroundImageField = document.getElementById('background-image');
+					const sectionImageField = document.getElementById('section-image');
+					
+					if (backgroundImageField) {
+						backgroundImageField.addEventListener('change', saveFormValues);
+						backgroundImageField.addEventListener('input', saveFormValues);
+						backgroundImageField.addEventListener('blur', saveFormValues); // Save on field blur too
+					}
+					
+					if (sectionImageField) {
+						sectionImageField.addEventListener('change', saveFormValues);
+						sectionImageField.addEventListener('input', saveFormValues);
+						sectionImageField.addEventListener('blur', saveFormValues); // Save on field blur too
+					}
+					
+					// Handle the preset theme selection
+					document.querySelectorAll('.preset-theme').forEach(theme => {
+						theme.addEventListener('click', function() {
+							// The theme selection logic is already in place
+							// Just make sure we save after it's done
+							setTimeout(saveFormValues, 100);
+						});
+					});
+					
+					// Handle the dynamic elements (nav items, pack options, etc.)
+					document.addEventListener('click', function(e) {
+						// Check if the clicked element is related to configuration
+						if (e.target.closest('.config-container') || 
+							e.target.closest('.button-group') ||
+							e.target.closest('#product-editor-modal')) {
+							// Delay saving to ensure elements are fully updated
+							setTimeout(saveFormValues, 100);
+						}
+					});
+					
+					// Setup autosave for color inputs specifically
+					document.querySelectorAll('input[type="color"]').forEach(colorInput => {
+						colorInput.addEventListener('input', saveFormValues);
+					});
+				}
+
+				function loadFormValues() {
+					const savedValues = localStorage.getItem('siteConfigForm');
+					if (!savedValues) {
+						console.log('No saved configuration found');
+						return;
+					}
+					
+					try {
+						const formValues = JSON.parse(savedValues);
+						console.log('Loading saved configuration');
+						
+						// Explicitly handle background and texture fields first to ensure they're loaded
+						if (formValues['background-image']) {
+							const backgroundField = document.getElementById('background-image');
+							if (backgroundField) {
+								backgroundField.value = formValues['background-image'];
+								console.log('Loaded background image:', formValues['background-image']);
+							}
+						}
+						
+						if (formValues['section-image']) {
+							const textureField = document.getElementById('section-image');
+							if (textureField) {
+								textureField.value = formValues['section-image'];
+								console.log('Loaded section image:', formValues['section-image']);
+							}
+						}
+						
+						// Loop through saved values and apply them to form elements
+						Object.keys(formValues).forEach(id => {
+							// Handle navigation items separately
+							if (id === 'nav-items') {
+								loadNavigationItems(formValues[id]);
+								return;
+							}
+							
+							// Handle social links separately
+							if (id === 'social-links') {
+								loadSocialLinks(formValues[id]);
+								return;
+							}
+							
+							// Handle friend links separately
+							if (id === 'friend-links') {
+								loadFriendLinks(formValues[id]);
+								return;
+							}
+							
+							// Handle active theme separately
+							if (id === 'active-theme') {
+								// We'll apply this later
+								return;
+							}
+							
+							// Skip background image fields as we handled them above
+							if (id === 'background-image' || id === 'section-image') {
+								return;
+							}
+							
+							// Find input by ID and set its value
+							const input = document.getElementById(id);
+							if (input) {
+								if (input.type === 'checkbox') {
+									input.checked = formValues[id];
+								} else if (input.type === 'color') {
+									input.value = formValues[id];
+									// Also update any visible color preview if applicable
+									const preview = input.closest('.form-group')?.querySelector('.color-preview');
+									if (preview) {
+										preview.style.backgroundColor = formValues[id];
+									}
+								} else {
+									input.value = formValues[id];
+								}
+								
+								// Trigger change event for select elements to update any dependent UI
+								if (input.tagName === 'SELECT') {
+									const event = new Event('change');
+									input.dispatchEvent(event);
+								}
+							}
+						});
+						
+						// Apply theme preset selection after everything else is loaded
+						if (formValues['active-theme']) {
+							const themeElement = document.querySelector(`.preset-theme[data-theme="${formValues['active-theme']}"]`);
+							if (themeElement) {
+								// First remove active class from all themes
+								document.querySelectorAll('.preset-theme').forEach(theme => {
+									theme.classList.remove('active');
+								});
+								
+								// Then add active class to selected theme
+								themeElement.classList.add('active');
+								
+								// Apply the theme colors as well
+								applyTheme(formValues['active-theme']);
+							}
+						}
+						
+						// Apply additional UI updates
+						updateDependentUI();
+						
+					} catch (error) {
+						console.error('Error loading saved configuration:', error);
+					}
+				}
+
+				function loadFriendLinks(friendLinks) {
+					if (!Array.isArray(friendLinks)) friendLinks = [];
+					
+					const friendLinksContainer = document.getElementById('friend-links');
+					if (!friendLinksContainer) return;
+					
+					// Clear existing items first
+					friendLinksContainer.innerHTML = '';
+					
+					// Always add hardcoded StrainNavigator first (not editable)
+					const strainNavItem = document.createElement('div');
+					strainNavItem.className = 'form-group friend-item default-friend';
+					strainNavItem.innerHTML = `
+						<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+							<input type="text" placeholder="Name" value="StrainNavigator" style="flex: 1;" readonly>
+							<input type="text" placeholder="URL" value="https://www.strainnavigator.com/" style="flex: 1;" readonly>
+							<button type="button" class="btn" disabled style="opacity: 0.5; cursor: not-allowed;">×</button>
+						</div>
+						<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+							<input type="text" placeholder="Logo/Image URL (optional)" value="img/friends/Strain_Navigator_Logo.jpg" style="flex: 1;" readonly>
+							<input type="text" placeholder="Description (optional)" value="Your ultimate cannabis growing assistant" style="flex: 1;" readonly>
+						</div>
+					`;
+					friendLinksContainer.appendChild(strainNavItem);
+					
+					// Then add other friend links (skip StrainNavigator if it exists in data)
+					friendLinks.forEach(link => {
+						if (link.name === 'StrainNavigator') return; // Skip duplicate
+						
+						if (link.name && link.url) {
+							const friendItem = document.createElement('div');
+							friendItem.className = 'form-group friend-item';
+							friendItem.innerHTML = `
+								<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+									<input type="text" placeholder="Friend Name" value="${link.name}" style="flex: 1;">
+									<input type="text" placeholder="URL" value="${link.url}" style="flex: 1;">
+									<button type="button" class="btn remove-friend-btn">×</button>
+								</div>
+								<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+									<input type="text" placeholder="Logo/Image URL (optional)" value="${link.image || ''}" style="flex: 1;">
+									<input type="text" placeholder="Description (optional)" value="${link.description || ''}" style="flex: 1;">
+								</div>
+							`;
+							
+							// Add remove button event
+							const removeBtn = friendItem.querySelector('.remove-friend-btn');
+							removeBtn.addEventListener('click', function() {
+								friendLinksContainer.removeChild(friendItem);
+							});
+							
+							friendLinksContainer.appendChild(friendItem);
+						}
+					});
+				}
+
+				function loadSocialLinks(socialLinks) {
+					if (!Array.isArray(socialLinks)) socialLinks = [];
+					
+					const socialLinksContainer = document.getElementById('social-links');
+					if (!socialLinksContainer) return;
+					
+					// Clear existing items first
+					socialLinksContainer.innerHTML = '';
+					
+					socialLinks.forEach(link => {
+						if (link.name && link.url) { // Only add if both name and URL exist
+							const socialItem = document.createElement('div');
+							socialItem.className = 'form-group social-item';
+							socialItem.innerHTML = `
+								<div style="display: flex; gap: 10px;">
+									<input type="text" placeholder="Platform Name" value="${link.name}" style="flex: 1;">
+									<input type="url" placeholder="URL" value="${link.url}" style="flex: 2;">
+									<button type="button" class="btn remove-social-btn">×</button>
+								</div>
+							`;
+							
+							// Add event listener to remove button
+							const removeBtn = socialItem.querySelector('.remove-social-btn');
+							removeBtn.addEventListener('click', function() {
+								socialLinksContainer.removeChild(socialItem);
+							});
+							
+							socialLinksContainer.appendChild(socialItem);
+						}
+					});
+				}
+				
+				// Function to update any UI that depends on form values
+				function updateDependentUI() {
+					// Set visibility for external checkout URL field
+					const checkoutMethod = document.getElementById('checkout-method');
+					const externalCheckoutGroup = document.getElementById('external-checkout-group');
+					
+					if (checkoutMethod && externalCheckoutGroup) {
+						if (checkoutMethod.value === 'external') {
+							externalCheckoutGroup.style.display = 'block';
+						} else {
+							externalCheckoutGroup.style.display = 'none';
+						}
+					}
+					
+					// Set visibility for floating object image field
+					const specialFeatureType = document.getElementById('special-feature-type');
+					const floatingObjectGroup = document.getElementById('floating-object-group');
+					
+					if (specialFeatureType && floatingObjectGroup) {
+						if (specialFeatureType.value === 'floatingObject') {
+							floatingObjectGroup.style.display = 'block';
+						} else {
+							floatingObjectGroup.style.display = 'none';
+						}
+					}
+				}
+
+				// Function to load navigation items
+				function loadNavigationItems(navItems) {
+					// If no nav items provided, set better defaults with correct section names
+					if (!Array.isArray(navItems) || navItems.length === 0) {
+						navItems = [
+							{ name: "Collections", url: "#products" },
+							{ name: "Genetics Explorer", url: "#strain-tree-section" },
+							{ name: "About", url: "#about" }
+						];
+					}
+					
+					// Clear existing items first
+					const navContainer = document.getElementById('nav-items');
+					if (!navContainer) return;
+					
+					navContainer.innerHTML = '';
+					
+					// Add each navigation item (either saved ones or defaults)
+					navItems.forEach(item => {
+						const navItem = document.createElement('div');
+						navItem.className = 'form-group nav-item';
+						navItem.innerHTML = `
+							<div style="display: flex; gap: 10px;">
+								<input type="text" placeholder="Name" value="${item.name || ''}" style="flex: 1;">
+								<input type="text" placeholder="URL" value="${item.url || ''}" style="flex: 1;">
+								<button type="button" class="btn remove-nav-btn">×</button>
+							</div>
+						`;
+						
+						// Add event listener to remove button
+						const removeBtn = navItem.querySelector('.remove-nav-btn');
+						if (removeBtn) {
+							removeBtn.addEventListener('click', function() {
+								navContainer.removeChild(navItem);
+								// Save changes after removing
+								setTimeout(() => {
+									document.dispatchEvent(new Event('change'));
+								}, 100);
+							});
+						}
+						
+						navContainer.appendChild(navItem);
+					});
+				}
+
+				// Function to match the current colors to a preset theme
+				function matchColorsToPresetTheme() {
+					const primaryColor = document.getElementById('primary-color').value;
+					const secondaryColor = document.getElementById('secondary-color').value;
+					const tertiaryColor = document.getElementById('tertiary-color').value;
+					const backgroundColor = document.getElementById('background-color').value;
+					
+					// Define the preset themes and their colors
+					const presets = {
+						'cosmic': {
+							primary: '#003B6F',
+							secondary: '#00FF9F',
+							tertiary: '#6A0DAD',
+							background: '#0A0E17'
+						},
+						'nature': {
+							primary: '#2E7D32',
+							secondary: '#8BC34A',
+							tertiary: '#795548',
+							background: '#1B2D1C'
+						},
+						'sunset': {
+							primary: '#FF5722',
+							secondary: '#FFC107',
+							tertiary: '#9C27B0',
+							background: '#1F1414'
+						},
+						'ocean': {
+							primary: '#0277BD',
+							secondary: '#4FC3F7',
+							tertiary: '#00796B',
+							background: '#0A1519'
+						}
+					};
+					
+					// Check if current colors match any preset
+					for (const [themeName, colors] of Object.entries(presets)) {
+						if (primaryColor === colors.primary && 
+							secondaryColor === colors.secondary && 
+							tertiaryColor === colors.tertiary && 
+							backgroundColor === colors.background) {
+							
+							// Activate matching preset theme
+							const themeElement = document.querySelector(`.preset-theme[data-theme="${themeName}"]`);
+							if (themeElement) {
+								themeElement.classList.add('active');
+							}
+							break;
+						}
+					}
+				}
+				
+				// Force visibility after a short delay to ensure DOM is ready
+				setTimeout(() => {
+					document.querySelectorAll('.config-tab').forEach(tab => {
+						tab.addEventListener('click', function() {
+							const tabId = this.getAttribute('data-tab');
+							const section = document.getElementById(`${tabId}-section`);
+							if (section) {
+								// First apply the active class
+								document.querySelectorAll('.config-section').forEach(s => {
+									s.classList.remove('active');
+								});
+								section.classList.add('active');
+								
+								// Then force display style
+								section.style.display = 'block';
+								
+								// Remove display style after animation completes to let CSS take over
+								setTimeout(() => {
+									if (section.classList.contains('active')) {
+										section.style.display = '';
+									}
+								}, 600);
+							}
+						});
+					});
+				}, 300);
+
+                
+                // Initialize
+				function init() {
+					// Load existing config.js file first
+					loadExistingConfig();
+					
+					// Wait a bit for config to load before continuing with the rest
+					setTimeout(() => {
+						// Add event listener to the load button
+						const loadConfigBtn = document.getElementById('load-config-btn');
+						if (loadConfigBtn) {
+							loadConfigBtn.addEventListener('click', function() {
+								const configPath = document.getElementById('config-path').value;
+								if (configPath) {
+									loadConfigFromPath(configPath);
+								}
+							});
+						}
+						
+						// Load saved values from localStorage (might be overridden by config.js)
+						// loadFormValues();
+						
+						// Then setup auto-save functionality
+						setupAutoSave();
+						
+						setupHoverImageHandlers();
+
+						// Listen for changes to additional images to update hover image options
+						document.getElementById('additional-images').addEventListener('change', function() {
+							if (document.getElementById('product-enable-hover').value === 'true') {
+								updateHoverImageOptions();
+							}
+						});
+						
+						// Reset image prompt field when page loads
+						const imagePromptField = document.getElementById('image-prompt');
+						if (imagePromptField) {
+							imagePromptField.value = '';
+						}
+						
+						// Hide the generated image container on initial load
+						const generatedContainer = document.querySelector('.generated-image-container');
+						if (generatedContainer) {
+							generatedContainer.style.display = 'none';
+						}
+						
+						// Init About Section
+						initializeAboutSection();
+
+						// Add event listeners to category inputs
+						document.getElementById('category1').addEventListener('input', updateProductTypeDropdown);
+						document.getElementById('category2').addEventListener('input', updateProductTypeDropdown);
+						document.getElementById('category3').addEventListener('input', updateProductTypeDropdown);
+						
+						document.querySelectorAll('.preset-theme').forEach(theme => {
+							theme.addEventListener('click', function() {
+								// Remove active class from all themes
+								document.querySelectorAll('.preset-theme').forEach(t => {
+									t.classList.remove('active');
+								});
+								
+								// Add active class to clicked theme
+								this.classList.add('active');
+								
+								// Apply theme colors
+								const themeId = this.getAttribute('data-theme');
+								applyTheme(themeId);
+							});
+						});
+					
+						document.getElementById('add-pack-btn').addEventListener('click', function() {
+							addPackOption();
+						});
+
+						document.getElementById('save-product-btn').addEventListener('click', function() {
+							saveProduct();
+						});
+
+						document.getElementById('cancel-product-btn').addEventListener('click', function() {
+							document.getElementById('product-editor-modal').style.display = 'none';
+						});
+
+						loadSavedImages();
+
+						// Initialize product management
+						initializeProductManagement();
+
+						// Show/hide External Checkout URL based on initial value
+						const checkoutMethod = safeGetElement('checkout-method');
+						const externalCheckoutGroup = safeGetElement('external-checkout-group');
+						
+						if (checkoutMethod && externalCheckoutGroup) {
+							if (checkoutMethod.value === 'external') {
+								externalCheckoutGroup.style.display = 'block';
+							} else {
+								externalCheckoutGroup.style.display = 'none';
+							}
+						}
+
+						// Load saved images from localStorage
+						loadSavedImages();
+					}, 500); // Half second delay to allow config to load
+				}
+
+				function loadExistingConfig() {
+					console.log("Attempting to load existing config.js...");
+					
+					// Only attempt to load if not already loaded
+					if (typeof window.siteConfig === 'undefined') {
+						// Try to load directly from the website's js folder FIRST
+						loadConfigFromPath('js/config.js', function(success) {
+							if (success) {
+								console.log("Successfully loaded config from website");
+								populateFormFromConfig(window.siteConfig);
+							} else {
+								console.error('Failed to load config.js from website js/ folder');
+								// Show error message
+								const configOptions = document.getElementById('config-options');
+								if (configOptions) {
+									configOptions.innerHTML = '<div class="no-configs">Could not load config.js from website. Please enter path manually.</div>';
+								}
+							}
+						});
+						return false;
+					} else {
+						// Config already loaded, populate the form
+						populateFormFromConfig(window.siteConfig);
+						return true;
+					}
+				}
+
+				// Function to detect configs from multiple paths
+				function detectConfigs(paths) {
+					const configOptions = document.getElementById('config-options');
+					if (configOptions) {
+						configOptions.innerHTML = '<div class="loading">Detecting configurations...</div>';
+					}
+					
+					// Use a Set to track unique paths
+					const uniquePathsSet = new Set();
+					let detectionComplete = 0;
+					
+					// Check each path
+					paths.forEach(function(path) {
+						checkConfigExists(path, function(exists) {
+							detectionComplete++;
+							
+							if (exists) {
+								// Add to our set of unique paths
+								uniquePathsSet.add(path);
+							}
+							
+							// Once all paths have been checked
+							if (detectionComplete === paths.length) {
+								// Convert Set to Array for displaying
+								const detectedConfigs = Array.from(uniquePathsSet);
+								displayDetectedConfigs(detectedConfigs);
+								
+								// If only one config was found, use it automatically
+								if (detectedConfigs.length === 1) {
+									loadConfigFromPath(detectedConfigs[0]);
+								} 
+								// If no configs were found, show message
+								else if (detectedConfigs.length === 0) {
+									// Try to use a default config
+									console.error('No config.js files detected in common locations');
+									window.siteConfig = {
+										// Default values
+										site: {
+											name: "Site Configuration",
+											tagline: "Configure your site",
+											// Other defaults...
+										},
+										// Additional defaults...
+									};
+									console.warn("Using default config values");
+									
+									// Update the UI
+									if (configOptions) {
+										configOptions.innerHTML = '<div class="no-configs">No configuration files detected. Please enter a path manually.</div>';
+									}
+								}
+							}
+						});
+					});
+				}
+
+				// Function to check if a config exists at a given path
+				function checkConfigExists(path, callback) {
+					const fullPath = path.startsWith('http') ? path : window.location.origin + (path.startsWith('/') ? '' : '/') + path;
+					
+					// Use fetch to check if the file exists
+					fetch(fullPath, { method: 'HEAD' })
+						.then(response => {
+							callback(response.ok);
+						})
+						.catch(() => {
+							callback(false);
+						});
+				}
+
+				// Function to display detected configs
+				function displayDetectedConfigs(configs) {
+					const configOptions = document.getElementById('config-options');
+					if (!configOptions) return;
+					
+					if (configs.length === 0) {
+						configOptions.innerHTML = '<div class="no-configs">No configuration files detected. Please enter a path manually.</div>';
+						return;
+					}
+					
+					configOptions.innerHTML = '';
+					
+					configs.forEach(path => {
+						const configBtn = document.createElement('button');
+						configBtn.className = 'config-option-btn';
+						configBtn.textContent = path;
+						configBtn.style.padding = '8px 12px';
+						configBtn.style.backgroundColor = 'var(--primary-color)';
+						configBtn.style.color = 'var(--text-color)';
+						configBtn.style.border = 'none';
+						configBtn.style.borderRadius = '5px';
+						configBtn.style.cursor = 'pointer';
+						
+						configBtn.addEventListener('click', function() {
+							document.getElementById('config-path').value = path;
+							loadConfigFromPath(path);
+						});
+						
+						configOptions.appendChild(configBtn);
+					});
+				}
+
+				// Function to load config from a specific path
+				function loadConfigFromPath(path, callback) {
+					console.log("Loading config from path:", path);
+					
+					// First, reset any existing config
+					window.siteConfig = undefined;
+					
+					const configScript = document.createElement('script');
+					configScript.src = path;
+					
+					configScript.onload = function() {
+						console.log('Successfully loaded config.js from:', path);
+						
+						// Update the input field with the path
+						const configPathInput = document.getElementById('config-path');
+						if (configPathInput) {
+							configPathInput.value = path;
+						}
+						
+						// Save the path to localStorage for future use
+						localStorage.setItem('savedConfigPath', path);
+						
+						// Populate the form if config was found
+						if (window.siteConfig) {
+							populateFormFromConfig(window.siteConfig);
+							if (callback) callback(true);
+						} else {
+							console.warn("Config file loaded but siteConfig object not found");
+							if (callback) callback(false);
+						}
+					};
+					
+					configScript.onerror = function() {
+						console.error('Failed to load config.js from:', path);
+						if (callback) callback(false);
+					};
+					
+					document.head.appendChild(configScript);
+				}
+
+				// Add this function to populate form fields based on the loaded config
+				function populateFormFromConfig(config) {
+					// Basic Info
+					if (config.site) {
+						safeSetValue('site-name', config.site.name);
+						safeSetValue('site-tagline', config.site.tagline);
+						safeSetValue('site-logo', config.site.logo);
+						safeSetValue('hero-background', config.site.heroBackground);
+						safeSetValue('social-preview', config.site.socialPreview);
+						safeSetValue('show-hero-text', config.site.showHeroText === false ? 'false' : 'true');
+						safeSetValue('site-email', config.site.email);
+						safeSetValue('copyright-text', config.site.copyright);
+					}
+					
+					// Colors
+					if (config.colors) {
+						safeSetValue('primary-color', config.colors.primary);
+						safeSetValue('secondary-color', config.colors.secondary);
+						safeSetValue('tertiary-color', config.colors.tertiary);
+						safeSetValue('highlight-color', config.colors.highlight);
+						safeSetValue('alert-color', config.colors.alert);
+						safeSetValue('background-color', config.colors.background);
+						safeSetValue('text-color', config.colors.text);
+						
+						// Match to preset theme if possible
+						matchColorsToPresetTheme();
+					}
+					
+					// Fonts
+					if (config.fonts) {
+						safeSetValue('heading-font', config.fonts.heading);
+						safeSetValue('body-font', config.fonts.body);
+					}
+					
+					// Terminology
+					if (config.terminology) {
+						safeSetValue('category1', config.terminology.category1);
+						safeSetValue('category2', config.terminology.category2);
+						safeSetValue('category3', config.terminology.category3);
+						safeSetValue('productTerm', config.terminology.productTerm);
+						safeSetValue('productPluralTerm', config.terminology.productPluralTerm);
+						safeSetValue('packTerm', config.terminology.packTerm);
+						safeSetValue('cartTerm', config.terminology.cartTerm);
+						safeSetValue('soldOutLabel', config.terminology.soldOutLabel);
+						safeSetValue('comingSoonLabel', config.terminology.comingSoonLabel);
+					}
+					
+					// Effects
+					if (config.effects) {
+						if (config.effects.backgroundEffect) {
+							safeSetValue('bg-effect-enabled', config.effects.backgroundEffect.enabled ? 'true' : 'false');
+							safeSetValue('bg-effect-type', config.effects.backgroundEffect.type);
+							safeSetValue('bg-effect-intensity', config.effects.backgroundEffect.intensity);
+						}
+						
+						if (config.effects.specialFeature) {
+							safeSetValue('special-feature-enabled', config.effects.specialFeature.enabled ? 'true' : 'false');
+							safeSetValue('special-feature-type', config.effects.specialFeature.type);
+							safeSetValue('floating-object-image', config.effects.specialFeature.image);
+							safeSetValue('special-feature-behavior', config.effects.specialFeature.behavior);
+						}
+					}
+					
+					// Advanced Settings
+					if (config.advanced) {
+						safeSetValue('enable-local-storage', config.advanced.enableLocalStorage ? 'true' : 'false');
+						safeSetValue('checkout-method', config.advanced.checkoutMethod);
+						safeSetValue('external-checkout-url', config.advanced.externalCheckoutUrl);
+						safeSetValue('analytics-id', config.advanced.analyticsId);
+						safeSetValue('enable-age-check', config.advanced.enableAgeCheck ? 'true' : 'false');
+						safeSetValue('age-check-minimum', config.advanced.ageCheckMinimum || 21);
+						safeSetValue('age-redirect-url', config.advanced.ageRedirectUrl || 'https://www.google.com');
+						
+						// Trigger the change event to show/hide age check settings
+						const enableAgeCheckSelect = document.getElementById('enable-age-check');
+						if (enableAgeCheckSelect) {
+							const event = new Event('change');
+							enableAgeCheckSelect.dispatchEvent(event);
+						}							
+					}
+
+					if (config.legal) {
+						safeSetValue('enable-legal-disclaimer', config.legal.enableDisclaimer ? 'true' : 'false');
+						safeSetValue('legal-disclaimer-text', config.legal.disclaimerText || '');
+					}
+					
+					// Handle background images specifically
+					if (config.background) {
+						safeSetValue('background-image', config.background.image || '');
+						safeSetValue('section-image', config.background.sectionImage || '');
+					}
+
+					// Social links
+					if (config.site && config.site.socialLinks) {
+						loadSocialLinks(config.site.socialLinks);
+					}
+					
+					// Navigation items
+					if (config.navigation && config.navigation.length > 0) {
+						loadNavigationItems(config.navigation);
+					}
+					
+					// Friend links
+					if (config.friendLinks && config.friendLinks.length > 0) {
+						loadFriendLinks(config.friendLinks);
+					}
+
+					// Friend links showcase settings
+					if (config.friendLinksShowcase) {
+						safeSetValue('friend-links-enabled', config.friendLinksShowcase.enabled ? 'true' : 'false');
+						safeSetValue('friend-links-style', config.friendLinksShowcase.style || 'cards');
+						
+						// Trigger the change event to show/hide the style options
+						const friendLinksEnabledSelect = document.getElementById('friend-links-enabled');
+						if (friendLinksEnabledSelect) {
+							const event = new Event('change');
+							friendLinksEnabledSelect.dispatchEvent(event);
+						}
+					}
+
+					// Footer friend links setting
+					if (config.showFooterFriendLinks !== undefined) {
+						safeSetValue('footer-friend-links', config.showFooterFriendLinks ? 'true' : 'false');
+					}
+					
+					// About section
+					if (config.about) {
+						// Store in localStorage to be used by the About section initialization
+						localStorage.setItem('aboutSection', JSON.stringify(config.about));
+					}
+					
+					// Products
+					if (config.products && config.products.items) {
+						localStorage.setItem('siteProducts', JSON.stringify(config.products.items));
+					}
+					
+					// Update UI based on loaded values
+					updateDependentUI();
+					
+					// Trigger change events on select elements to update dependent UI elements
+					document.querySelectorAll('select').forEach(select => {
+						const event = new Event('change');
+						select.dispatchEvent(event);
+					});
+				}
+
+				// Helper function to safely set form values
+				function safeSetValue(id, value) {
+					if (value === undefined || value === null) return;
+					
+					const element = document.getElementById(id);
+					if (element) {
+						element.value = value;
+					}
+				}
+
+				function safeGetElement(id) {
+					const element = document.getElementById(id);
+					if (!element) {
+						console.warn(`Element with ID '${id}' not found: ${id}`);
+						return null;
+					}
+					return element;
+				}
+                
+                // Run initialization
+                init();
+            });
+        </script>
+		<script>
+			// Strain Tree section save/load handlers
+			function saveStrainTreeConfig() {
+				const strainTreeConfig = {
+					enabled: document.getElementById('enable-strain-tree').value === 'true',
+					title: document.getElementById('strain-tree-title').value,
+					description: document.getElementById('strain-tree-description').value,
+					dataPath: document.getElementById('strain-data-path').value || 'data/straindata.json'
+				};
+				
+				localStorage.setItem('strainTreeConfig', JSON.stringify(strainTreeConfig));
+			}
+			
+			function loadStrainTreeConfig() {
+				const savedConfig = localStorage.getItem('strainTreeConfig');
+				if (savedConfig) {
+					try {
+						const config = JSON.parse(savedConfig);
+						document.getElementById('enable-strain-tree').value = config.enabled ? 'true' : 'false';
+						document.getElementById('strain-tree-title').value = config.title || 'Strain Genetics Explorer';
+						document.getElementById('strain-tree-description').value = config.description || 'Explore the genetic relationships between our strains.';
+						document.getElementById('strain-data-path').value = config.dataPath || 'data/straindata.json';
+					} catch (error) {
+						console.error('Error loading strain tree config:', error);
+					}
+				}
+			}
+			
+			// Add event listeners for strain tree form fields
+			document.getElementById('enable-strain-tree').addEventListener('change', saveStrainTreeConfig);
+			document.getElementById('strain-tree-title').addEventListener('input', saveStrainTreeConfig);
+			document.getElementById('strain-tree-description').addEventListener('input', saveStrainTreeConfig);
+			document.getElementById('strain-data-path').addEventListener('input', saveStrainTreeConfig);
+			
+			// Load saved config when page loads
+			document.addEventListener('DOMContentLoaded', function() {
+				loadStrainTreeConfig();
+			});
+			
+			// Add strain tree config to the main config generation
+			const originalGenerateConfig = window.generateConfig || function() { return {}; };
+			window.generateConfig = function() {
+				const config = originalGenerateConfig();
+				
+				// Add strain tree config - FIXED boolean conversion
+				const strainTreeEnabled = document.getElementById('enable-strain-tree').value;
+				
+				config.strainTree = {
+					enabled: strainTreeEnabled === 'true', // This will properly convert string 'false' to boolean false
+					title: document.getElementById('strain-tree-title').value,
+					description: document.getElementById('strain-tree-description').value,
+					dataPath: document.getElementById('strain-data-path').value || 'data/straindata.json'
+				};
+				
+				// Log the actual value being set to help with debugging
+				console.log('Setting strainTree.enabled to:', strainTreeEnabled === 'true', 
+							'from dropdown value:', strainTreeEnabled);
+				
+				return config;
+			};
+		</script>
+		<script>
+		// Add cache-busting parameter to all existing images on the page
+		document.addEventListener('DOMContentLoaded', function() {
+		  const sessionId = localStorage.getItem('configSessionId');
+		  if (!sessionId) return;
+		  
+		  // Process all images
+		  const images = document.querySelectorAll('img');
+		  images.forEach(img => {
+			if (img.src) {
+			  const url = new URL(img.src);
+			  url.searchParams.set('_cb', sessionId);
+			  img.src = url.toString();
+			}
+		  });
+		  
+		  // Process background images in style attributes
+		  const elementsWithBackgroundImage = document.querySelectorAll('[style*="background-image"]');
+		  elementsWithBackgroundImage.forEach(el => {
+			const style = el.getAttribute('style');
+			if (style && style.includes('url(')) {
+			  // Extract URL from background-image style
+			  const urlMatch = style.match(/url\(['"]?([^'")]+)['"]?\)/);
+			  if (urlMatch && urlMatch[1]) {
+				let imageUrl = urlMatch[1];
+				const separator = imageUrl.includes('?') ? '&' : '?';
+				const newUrl = `${imageUrl}${separator}_cb=${sessionId}`;
+				// Replace the URL in the style attribute
+				const newStyle = style.replace(imageUrl, newUrl);
+				el.setAttribute('style', newStyle);
+			  }
+			}
+		  });
+		  
+		  // Clear any existing image cache in localStorage
+		  // We need to do this to ensure our images and image library are in sync
+		  localStorage.removeItem('savedImages');
+		});
+		</script>		
+    </body>
+    </html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+	<!-- Primary Meta Tags - Will be filled from config.js -->
+	<meta name="title" content="">
+	<meta name="description" content="">
+
+	<!-- Social Media Meta Tags - Will be filled from config.js -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="">
+	<meta property="og:title" content="">
+	<meta property="og:description" content="">
+	<meta property="og:image" content="">
+
+	<!-- Twitter Card Meta Tags -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:url" content="">
+	<meta name="twitter:title" content="">
+	<meta name="twitter:description" content="">
+	<meta name="twitter:image" content="">
+    
+    <title>Loading Site...</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon - Will be configured dynamically -->
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+
+	<!-- Preload fonts to avoid multiple requests -->
+	<link rel="preload" href="http://fonts.gstatic.com/s/orbitron/v7/DY8swouAZjR3RaUPRf0HDQ.ttf" as="font" type="font/ttf" crossorigin>
+	<link rel="preload" href="https://fonts.gstatic.com/s/exo2/v21/7cHmv4okm5zmbtYsK-4E4Q.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="css/base-styles.css">
+    
+    <!-- Dynamic CSS will be injected here -->
+    <style id="dynamic-styles"></style>
+</head>
+<body>
+<script>
+  // Immediately check for preview mode when page loads
+  (function() {
+    const isPreview = window.location.search.includes('preview=true');
+    if (isPreview) {
+      // Create and add preview banner immediately
+      const banner = document.createElement('div');
+      banner.id = 'preview-mode-banner';
+      banner.style.position = 'fixed';
+      banner.style.top = '0';
+      banner.style.left = '0';
+      banner.style.width = '100%';
+      banner.style.padding = '10px 15px';
+      banner.style.background = '#FF5722';
+      banner.style.color = 'white';
+      banner.style.zIndex = '10000';
+      banner.style.display = 'flex';
+      banner.style.justifyContent = 'space-between';
+      banner.style.alignItems = 'center';
+      banner.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+      banner.style.fontFamily = "'Orbitron', sans-serif";
+      
+      banner.innerHTML = `
+        <div style="font-weight: bold; letter-spacing: 1px;">PREVIEW MODE</div>
+        <button id="back-to-config-btn" style="background: rgba(255, 255, 255, 0.2); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; transition: all 0.3s;">← Back to Configuration</button>
+      `;
+      
+      document.body.insertBefore(banner, document.body.firstChild);
+      
+      // Add margin to body to prevent banner overlap
+      document.body.style.marginTop = '42px';
+      
+      // Add event listener to the button
+      setTimeout(function() {
+        const backButton = document.getElementById('back-to-config-btn');
+        if (backButton) {
+          backButton.addEventListener('click', function() {
+            window.location.href = 'setup.html';
+          });
+        }
+      }, 100);
+    }
+  })();
+</script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="js/navigator.js"></script>
+    <!-- Background Elements -->
+    <div class="background"></div>
+    <div id="background-effect"></div>
+    <div id="special-feature"></div>
+    
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-container">
+                <div class="logo-container">
+                    <a href="index.html" class="logo-link">
+                        <img src="" alt="" class="header-logo" id="site-logo">
+                        <h1 class="site-title" id="site-name"></h1>
+                    </a>
+                </div>
+                <nav>
+                    <ul id="main-navigation">
+                        <!-- Navigation items will be dynamically inserted here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="hero-section">
+                <h1 id="hero-title"></h1>
+                <p id="hero-description"></p>
+            </div>
+            
+            <div class="filter-section">
+                <button class="filter-button active" data-filter="all">All Collections</button>
+                <!-- Filter buttons will be dynamically inserted here -->
+            </div>
+            
+            <section id="products">
+                <div class="product-grid" id="product-grid">
+                    <!-- Product cards will be dynamically inserted here -->
+                </div>
+
+				<section id="strain-tree-section" style="display: none;">
+					<div class="container">
+						<h2 id="strain-tree-title">Strain Genetics Explorer</h2>
+						<p id="strain-tree-description">Explore the genetic relationships between our strains.</p>
+						
+						<div class="genetics-tree-container">
+							<div id="genetics-tree" class="genetics-tree"></div>
+							<div class="genetics-controls">
+								<button id="expand-all" class="cta-button">Expand All</button>
+								<button id="collapse-all" class="cta-button">Collapse All</button>
+							</div>
+							<div id="strain-description" class="genetics-info">
+								Click on a strain to view its information.
+							</div>
+						</div>
+					</div>
+				</section>
+				
+            </section>
+        </div>
+    </div>
+
+	<!-- About Modal Template -->
+	<section id="about" class="about-section" style="display: none;">
+		<div class="about-container">
+			<h2 id="about-title"></h2>
+			<h3 id="about-subtitle"></h3>
+			
+			<div class="about-content">
+				<div class="about-image-container">
+					<img src="" alt="About Us" id="about-image">
+				</div>
+				<div class="about-text">
+					<div id="about-description"></div>
+				</div>
+			</div>
+			
+			<!-- Team Members Section -->
+			<div id="team-section" class="team-section">
+				<h3>Our Team</h3>
+				<div id="team-members-display" class="team-grid">
+					<!-- Team members will be dynamically inserted here -->
+				</div>
+			</div>
+			
+			<!-- History Timeline Section -->
+			<div id="history-section" class="history-section">
+				<h3>Our History</h3>
+				<div id="history-timeline" class="timeline">
+					<!-- Timeline items will be dynamically inserted here -->
+				</div>
+			</div>
+			
+			<!-- Additional Content Sections -->
+			<div id="additional-sections">
+				<!-- Additional sections will be dynamically inserted here -->
+			</div>
+		</div>
+	</section>	
+    
+    <!-- Product Modal Template -->
+	<div class="modal" id="productModal">
+		<div class="modal-content">
+			<span class="close-modal">&times;</span>
+			<div class="modal-grid">
+				<div class="modal-image-container">
+					<img src="" alt="" class="modal-image" id="modalImage">
+					<div class="modal-thumbnail-gallery" id="modalThumbnails">
+						<!-- Thumbnails will be added dynamically -->
+					</div>
+				</div>
+				<div class="modal-info">
+					<h2 id="modalTitle"></h2>
+					<div class="info-row">
+						<div class="info-label">Type:</div>
+						<div class="info-value" id="modalType"></div>
+					</div>
+					<div class="info-row">
+						<div class="info-label">Rating:</div>
+						<div class="info-value" id="modalRating"></div>
+					</div>
+					<div class="info-row">
+						<div class="info-label">Origin:</div>
+						<div class="info-value" id="modalOrigin"></div>
+					</div>
+					<div class="info-row">
+						<div class="info-label">Rarity:</div>
+						<div class="info-value" id="modalRarity"></div>
+					</div>
+					<div class="info-row">
+						<div class="info-label">Variety:</div>
+						<div class="info-value" id="modalVariety"></div>
+					</div>
+					
+					<!-- Info Tabs -->
+					<div class="info-tabs">
+						<div class="info-tab active" data-tab="description">Description</div>
+						<div class="info-tab" data-tab="details">Details</div>
+						<div class="info-tab" data-tab="notes">Notes</div>
+					</div>
+					
+					<div class="info-tab-content active" id="descriptionTab">
+						<div class="modal-description" id="modalDescription"></div>
+					</div>
+					
+					<div class="info-tab-content" id="detailsTab">
+						<div class="modal-details" id="modalDetails"></div>
+					</div>
+					
+					<div class="info-tab-content" id="notesTab">
+						<div class="modal-notes" id="modalNotes"></div>
+					</div>
+					
+					<!-- Pack Options -->
+					<div class="pack-options" id="packOptions">
+						<h3 id="packOptionsTitle">Select Pack Size:</h3>
+						<div class="pack-option-buttons" id="packOptionButtons"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+    
+    <!-- Cart Modal -->
+    <div class="modal cart-modal" id="cartModal">
+        <div class="modal-content cart-container">
+            <span class="close-modal" id="closeCart">&times;</span>
+            <div class="cart-header">
+                <h2 class="cart-title" id="cartTitle"></h2>
+            </div>
+            <div id="cartItems" class="cart-items">
+                <!-- Cart items will be inserted here dynamically -->
+            </div>
+            <div id="cartEmpty" class="cart-empty">
+                <p id="cartEmptyMessage">Your collection box is empty</p>
+            </div>
+            <div id="cartTotal" class="cart-total">
+                <span>Total:</span>
+                <span id="totalAmount">$0.00</span>
+            </div>
+            <div class="cart-buttons">
+                <button class="cta-button" id="continueShoppingBtn">Continue Shopping</button>
+                <button class="cta-button" id="checkoutBtn">Checkout</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeCheckout">&times;</span>
+            <h2 id="checkoutTitle">Complete Your Order</h2>
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number (Optional)</label>
+                    <input type="tel" id="phone">
+                </div>
+                <div class="form-group">
+                    <label for="message">Additional Notes</label>
+                    <textarea id="message" rows="4"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="cta-button" id="submitOrderBtn">Send Order Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+	<!-- Add this section before the footer in index.html -->
+	<section id="partner-showcase" class="partner-section" style="display: none;">
+		<div class="container">
+			<h2 id="partner-showcase-title">Our Partners</h2>
+			<div id="partner-showcase-content">
+				<!-- Partner content will be dynamically inserted here -->
+			</div>
+		</div>
+	</section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 id="footerSiteName"></h3>
+                    <ul id="footerNav">
+                        <!-- Footer navigation items will be dynamically inserted here -->
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Policies</h3>
+                    <ul>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="shipping.html">Shipping Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul id="contact-links">
+                        <!-- Contact links will be dynamically inserted here -->
+                    </ul>
+                </div>
+				
+				<div class="footer-section">
+					<h3>Friends</h3>
+					<ul id="friend-links-display">
+						<!-- Friend links will be dynamically inserted here -->
+					</ul>
+				</div>
+				
+            </div>
+            <div class="copyright">
+                <p id="copyright-text"></p>
+            </div>
+        </div>
+    </footer>
+
+	<!-- Core Scripts -->
+	<script src="js/config.js"></script>
+	<script src="js/main.js"></script>
+</body>
+</html>

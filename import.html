@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Inventory Manager</title>
+    <style>
+        :root {
+            --primary-color: #003B6F;
+            --secondary-color: #00FF9F;
+            --tertiary-color: #6A0DAD;
+            --background-color: #0A0E17;
+            --text-color: #FFFFFF;
+            
+            --font-heading: 'Orbitron', sans-serif;
+            --font-body: 'Exo 2', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid var(--tertiary-color);
+        }
+        
+        h1, h2, h3 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        input[type="text"],
+        input[type="url"],
+        select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--tertiary-color));
+            color: var(--text-color);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .help-text {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .status-success {
+            background-color: rgba(0, 128, 0, 0.2);
+            border: 1px solid #00ff9f;
+        }
+        
+        .status-error {
+            background-color: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff5722;
+        }
+        
+        .status-loading {
+            background-color: rgba(0, 0, 255, 0.2);
+            border: 1px solid #003b6f;
+        }
+        
+        #preview-container {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        
+        th, td {
+            padding: 5px;
+            text-align: left;
+            border-bottom: 1px solid var(--primary-color);
+        }
+        
+        tr:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Real-Time Inventory Manager</h1>
+        <p>Import products from Google Sheets and generate a JSON file for real-time inventory management.</p>
+        
+        <div class="form-group">
+            <label for="sheets-url">Google Sheets URL</label>
+            <input type="url" id="sheets-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <p class="help-text">Paste your published Google Sheets URL here</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="sheets-tab">Sheet Tab Name</label>
+            <input type="text" id="sheets-tab" placeholder="Sheet1" value="Sheet1">
+            <p class="help-text">Name of the specific sheet tab to use</p>
+        </div>
+        
+        <h3>Required Spreadsheet Format</h3>
+        <p>Your spreadsheet's first row should contain these column headers:</p>
+        <p class="help-text">id, name, type, status, image, additionalImages, description, price, salePrice, packSize, variety, rating, origin, notes, delivery, digitalContent</p>
+        <p class="help-text"><strong>id</strong>, <strong>name</strong>, and <strong>type</strong> are required; others are optional.</p>
+        <p class="help-text"><strong>status</strong> field is important for real-time inventory management (available, sold-out, coming-soon)</p>
+        <p class="help-text"><strong>delivery</strong> can be "physical" or "digital"; <strong>digitalContent</strong> contains the URL for digital products</p>
+        
+        <div class="button-group">
+            <button type="button" class="btn btn-primary" id="test-btn">Test Connection</button>
+            <button type="button" class="btn btn-primary" id="load-btn">Load Products</button>
+        </div>
+        
+        <div id="status">
+            <h3 id="status-title">Status</h3>
+            <div id="status-message"></div>
+        </div>
+        
+        <div id="preview-container">
+            <h4>Preview (First 3 Products)</h4>
+            <div id="preview"></div>
+        </div>
+        
+        <div id="output" style="margin-top: 20px; display: none;">
+            <h3>Generated Inventory Data</h3>
+            <p>This is what will be saved to realtime-inventory.json:</p>
+            <pre id="output-content" style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 5px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; margin-top: 10px;"></pre>
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" id="save-btn">Download realtime-inventory.json</button>
+            </div>
+        </div>
+        
+        <div id="instructions" style="margin-top: 30px; padding: 15px; border: 1px dashed var(--secondary-color); border-radius: 5px;">
+            <h3>How To Use This Tool</h3>
+            <ol style="margin-left: 20px;">
+                <li>Create a Google Sheet with your inventory data</li>
+                <li>Make sure the sheet has the required columns (id, name, type, status, etc.)</li>
+                <li>Publish the sheet to the web (File → Share → Publish to web)</li>
+                <li>Copy the published URL and paste it above</li>
+                <li>Test the connection to ensure your sheet is accessible</li>
+                <li>Load the products and download the JSON file</li>
+                <li>Upload the JSON file to your website's root directory</li>
+            </ol>
+            <p style="margin-top: 10px;"><strong>Note:</strong> To update your inventory in real-time, simply update your Google Sheet, then use this tool to generate and upload a new JSON file.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded, setting up event listeners");
+            
+            // Set up event listeners
+            const testBtn = document.getElementById('test-btn');
+            const loadBtn = document.getElementById('load-btn');
+            const saveBtn = document.getElementById('save-btn');
+            
+            if (testBtn) {
+                testBtn.addEventListener('click', function() {
+                    console.log("Test button clicked");
+                    testGoogleSheetsConnection();
+                });
+            } else {
+                console.error("Test button not found");
+            }
+            
+            if (loadBtn) {
+                loadBtn.addEventListener('click', function() {
+                    console.log("Load button clicked");
+                    loadFromGoogleSheets();
+                });
+            } else {
+                console.error("Load button not found");
+            }
+            
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    console.log("Save button clicked");
+                    saveInventoryFile();
+                });
+            } else {
+                console.error("Save button not found");
+            }
+        });
+        
+        // Test connection to Google Sheets
+        async function testGoogleSheetsConnection() {
+            const sheetsUrl = document.getElementById('sheets-url').value.trim();
+            const sheetsTab = document.getElementById('sheets-tab').value.trim();
+            
+            if (!sheetsUrl) {
+                showStatus('Error', 'Please enter a Google Sheets URL', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('Testing Connection...', 'Connecting to Google Sheets...', 'loading');
+                
+                // Convert Google Sheets URL to CSV export URL
+                const csvUrl = convertGoogleSheetsToCsvUrl(sheetsUrl, sheetsTab);
+                
+                // Fetch CSV data
+                const response = await fetch(csvUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+                }
+                
+                const csvData = await response.text();
+                if (!csvData || csvData.includes('<!DOCTYPE html>')) {
+                    throw new Error('Invalid response. Make sure your spreadsheet is published to the web and accessible to anyone with the link.');
+                }
+                
+                // Parse the CSV data
+                const parsedData = parseCSV(csvData);
+                
+                if (parsedData.length === 0) {
+                    throw new Error('Spreadsheet appears to be empty');
+                }
+                
+                // Check for required headers
+                const headers = parsedData[0];
+                const requiredHeaders = ['id', 'name', 'type'];
+                const missingHeaders = requiredHeaders.filter(header => 
+                    !headers.some(h => h.trim().toLowerCase() === header.toLowerCase())
+                );
+                
+                if (missingHeaders.length > 0) {
+                    throw new Error(`Missing required column headers: ${missingHeaders.join(', ')}. The first row of your spreadsheet must include these column names.`);
+                }
+                
+                // Show success and preview first few products
+                showStatus('Connection Successful', 
+                    `Found ${parsedData.length - 1} products in the spreadsheet. The spreadsheet has the correct column headers.`, 
+                    'success');
+                previewSheetData(parsedData);
+            } catch (error) {
+                showStatus('Connection Failed', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Load products from Google Sheets
+        async function loadFromGoogleSheets() {
+            const sheetsUrl = document.getElementById('sheets-url').value.trim();
+            const sheetsTab = document.getElementById('sheets-tab').value.trim();
+            
+            if (!sheetsUrl) {
+                showStatus('Error', 'Please enter a Google Sheets URL', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('Loading...', 'Fetching data from Google Sheets...', 'loading');
+                
+                // Convert Google Sheets URL to CSV export URL
+                const csvUrl = convertGoogleSheetsToCsvUrl(sheetsUrl, sheetsTab);
+                
+                // Fetch CSV data
+                const response = await fetch(csvUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+                }
+                
+                const csvData = await response.text();
+                if (!csvData || csvData.includes('<!DOCTYPE html>')) {
+                    throw new Error('Invalid response. Make sure your spreadsheet is published to the web and accessible to anyone with the link.');
+                }
+                
+                // Parse CSV data
+                const parsedData = parseCSV(csvData);
+                
+                if (parsedData.length <= 1) {
+                    // Only has header row
+                    throw new Error('No product data found in the spreadsheet');
+                }
+                
+                // Convert to products
+                const products = convertToProducts(parsedData);
+                
+                // Show success message
+                showStatus('Import Successful', `${products.length} products have been loaded.`, 'success');
+                
+                // Display the generated output
+                const productsObj = {};
+                products.forEach(product => {
+                    productsObj[product.id] = product;
+                });
+                
+                // Just output the JSON - no JavaScript wrapping
+                const jsonData = JSON.stringify(productsObj, null, 2);
+                
+                document.getElementById('output-content').textContent = jsonData;
+                document.getElementById('output').style.display = 'block';
+            } catch (error) {
+                showStatus('Import Failed', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Save inventory to a file
+        function saveInventoryFile() {
+            try {
+                const outputContent = document.getElementById('output-content').textContent;
+                if (!outputContent) {
+                    alert('No product data to save. Please load products from Google Sheets first.');
+                    return;
+                }
+                
+                // Create download link
+                const blob = new Blob([outputContent], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = 'realtime-inventory.json';
+                downloadLink.click();
+                
+                // Clean up
+                URL.revokeObjectURL(url);
+                
+                showStatus('Download Complete', 'The realtime-inventory.json file has been saved to your downloads folder. Upload this file to your website to update your inventory.', 'success');
+            } catch (error) {
+                alert(`Error saving inventory: ${error.message}`);
+            }
+        }
+        
+        // Helper Functions
+        
+        // Convert a Google Sheets URL to a CSV export URL
+        function convertGoogleSheetsToCsvUrl(sheetsUrl, sheetTab) {
+            // Extract the spreadsheet ID from the URL
+            let spreadsheetId = '';
+            
+            // Match Google Sheets URL patterns
+            if (sheetsUrl.includes('/spreadsheets/d/')) {
+                const match = sheetsUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+                if (match && match[1]) {
+                    spreadsheetId = match[1];
+                }
+            } else if (sheetsUrl.includes('key=')) {
+                const match = sheetsUrl.match(/key=([a-zA-Z0-9-_]+)/);
+                if (match && match[1]) {
+                    spreadsheetId = match[1];
+                }
+            }
+            
+            if (!spreadsheetId) {
+                throw new Error('Invalid Google Sheets URL. Please make sure you copy the URL from your browser address bar.');
+            }
+            
+            // Construct the CSV export URL
+            let csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`;
+            
+            // Add sheet parameter if specified
+            if (sheetTab) {
+                csvUrl += `&sheet=${encodeURIComponent(sheetTab)}`;
+            }
+            
+            return csvUrl;
+        }
+        
+        // Parse CSV data
+        function parseCSV(csvData) {
+            // Split by newlines
+            const lines = csvData.split('\n');
+            const result = [];
+            
+            // Process each line
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const row = [];
+                let inQuotes = false;
+                let currentValue = '';
+                
+                // Process each character in the line
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    
+                    if (char === '"' && (j === 0 || line[j-1] !== '\\')) {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(currentValue);
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                }
+                
+                // Add the last field
+                row.push(currentValue);
+                
+                // Remove quotes from values
+                for (let j = 0; j < row.length; j++) {
+                    if (row[j].startsWith('"') && row[j].endsWith('"')) {
+                        row[j] = row[j].substring(1, row[j].length - 1);
+                    }
+                }
+                
+                result.push(row);
+            }
+            
+            return result;
+        }
+        
+		// Convert parsed data to product objects
+		function convertToProducts(data) {
+			if (data.length < 2) {
+				throw new Error('Spreadsheet must have at least a header row and one data row');
+			}
+			
+			// Get column indices from headers
+			const headers = data[0];
+			const columnIndices = {
+				id: headers.findIndex(header => header.trim().toLowerCase() === 'id'),
+				name: headers.findIndex(header => header.trim().toLowerCase() === 'name'),
+				type: headers.findIndex(header => header.trim().toLowerCase() === 'type'),
+				status: headers.findIndex(header => header.trim().toLowerCase() === 'status'),
+				image: headers.findIndex(header => header.trim().toLowerCase() === 'image'),
+				additionalImages: headers.findIndex(header => header.trim().toLowerCase() === 'additionalimages'),
+				description: headers.findIndex(header => header.trim().toLowerCase() === 'description'),
+				price: headers.findIndex(header => header.trim().toLowerCase() === 'price'),
+				salePrice: headers.findIndex(header => header.trim().toLowerCase() === 'saleprice'),
+				packSize: headers.findIndex(header => header.trim().toLowerCase() === 'packsize'),
+				variety: headers.findIndex(header => header.trim().toLowerCase() === 'variety'),
+				rating: headers.findIndex(header => header.trim().toLowerCase() === 'rating'),
+				origin: headers.findIndex(header => header.trim().toLowerCase() === 'origin'),
+				details: headers.findIndex(header => header.trim().toLowerCase() === 'details'),
+				notes: headers.findIndex(header => header.trim().toLowerCase() === 'notes'),
+				delivery: headers.findIndex(header => header.trim().toLowerCase() === 'delivery'),
+				digitalContent: headers.findIndex(header => header.trim().toLowerCase() === 'digitalcontent')
+			};
+			
+			// Validate required columns
+			if (columnIndices.id === -1) {
+				throw new Error('Required column "id" not found in spreadsheet');
+			}
+			if (columnIndices.name === -1) {
+				throw new Error('Required column "name" not found in spreadsheet');
+			}
+			if (columnIndices.type === -1) {
+				throw new Error('Required column "type" not found in spreadsheet');
+			}
+			
+			const products = [];
+			
+			// Process each data row
+			for (let i = 1; i < data.length; i++) {
+				const row = data[i];
+				if (!row || row.length === 0) continue;
+				
+				// Skip if id is missing
+				if (columnIndices.id === -1 || !row[columnIndices.id] || row[columnIndices.id].trim() === '') {
+					console.warn(`Skipping row ${i + 1} due to missing ID`);
+					continue;
+				}
+				
+				// Create product object
+				const product = {
+					id: row[columnIndices.id]?.trim(),
+					name: columnIndices.name !== -1 && row[columnIndices.name] ? row[columnIndices.name].trim() : `Product ${i}`,
+					type: columnIndices.type !== -1 && row[columnIndices.type] ? row[columnIndices.type].trim() : 'Premium Collection',
+					status: columnIndices.status !== -1 && row[columnIndices.status] ? row[columnIndices.status].trim() : 'available',
+					image: columnIndices.image !== -1 && row[columnIndices.image] ? row[columnIndices.image].trim() : '',
+					additionalImages: [],
+					description: columnIndices.description !== -1 && row[columnIndices.description] ? row[columnIndices.description].trim() : '',
+					variety: columnIndices.variety !== -1 && row[columnIndices.variety] ? row[columnIndices.variety].trim() : '',
+					rating: columnIndices.rating !== -1 && row[columnIndices.rating] ? row[columnIndices.rating].trim() : '',
+					origin: columnIndices.origin !== -1 && row[columnIndices.origin] ? row[columnIndices.origin].trim() : '',
+					details: columnIndices.details !== -1 && row[columnIndices.details] ? row[columnIndices.details].trim() : '',
+					notes: columnIndices.notes !== -1 && row[columnIndices.notes] ? row[columnIndices.notes].trim() : '',
+					packOptions: []
+				};
+				
+				// Add delivery type if available
+				if (columnIndices.delivery !== -1 && row[columnIndices.delivery]) {
+					product.delivery = row[columnIndices.delivery].trim();
+				}
+				
+				// Add digital content URL if available
+				if (columnIndices.digitalContent !== -1 && row[columnIndices.digitalContent]) {
+					product.digitalContent = row[columnIndices.digitalContent].trim();
+				}
+				
+				// Handle additional images
+				if (columnIndices.additionalImages !== -1 && row[columnIndices.additionalImages]) {
+					product.additionalImages = row[columnIndices.additionalImages]
+						.split(',')
+						.map(img => img.trim())
+						.filter(img => img !== '');
+				}
+				
+				// Handle pack options - FIX: Default to 1 pack for grinders instead of 3
+				// Check if packSize specifically contains "grinder" or is simply "1"
+				const packSize = columnIndices.packSize !== -1 && row[columnIndices.packSize] ? row[columnIndices.packSize].trim() : '3 Pack';
+				const defaultPackSize = packSize.toLowerCase().includes('grinder') || packSize === '1' ? '1' : '3 Pack';
+				
+				const regularPrice = columnIndices.price !== -1 && row[columnIndices.price] ? parseFloat(row[columnIndices.price]) : 35;
+				const salePrice = columnIndices.salePrice !== -1 && row[columnIndices.salePrice] ? parseFloat(row[columnIndices.salePrice]) : 30;
+				
+				// Only add pack options for physical products or if delivery type isn't specified
+				if (!isNaN(regularPrice) && (!product.delivery || product.delivery !== 'digital')) {
+					product.packOptions.push({
+						size: defaultPackSize,
+						regularPrice: regularPrice,
+						salePrice: isNaN(salePrice) ? regularPrice : salePrice
+					});
+				}
+				
+				products.push(product);
+			}
+			
+			return products;
+		}
+        
+        // Show status message
+        function showStatus(title, message, type = 'info') {
+            const statusContainer = document.getElementById('status');
+            const statusTitle = document.getElementById('status-title');
+            const statusMessage = document.getElementById('status-message');
+            const previewContainer = document.getElementById('preview-container');
+            
+            statusContainer.style.display = 'block';
+            statusTitle.textContent = title;
+            statusMessage.textContent = message;
+            
+            // Reset classes
+            statusContainer.className = '';
+            
+            // Add appropriate class based on type
+            switch (type) {
+                case 'success':
+                    statusContainer.classList.add('status-success');
+                    break;
+                case 'error':
+                    statusContainer.classList.add('status-error');
+                    previewContainer.style.display = 'none';
+                    break;
+                case 'loading':
+                    statusContainer.classList.add('status-loading');
+                    previewContainer.style.display = 'none';
+                    document.getElementById('output').style.display = 'none';
+                    break;
+                default:
+                    statusContainer.classList.add('status-info');
+            }
+        }
+        
+        // Preview sheet data
+        function previewSheetData(data) {
+            const previewContainer = document.getElementById('preview-container');
+            const previewElement = document.getElementById('preview');
+            
+            if (data.length <= 1) {
+                previewContainer.style.display = 'none';
+                return;
+            }
+            
+            // Get headers
+            const headers = data[0];
+            
+            // Create preview HTML
+            let previewHTML = '<table>';
+            
+            // Add header row
+            previewHTML += '<tr>';
+            headers.forEach(header => {
+                previewHTML += `<th>${header}</th>`;
+            });
+            previewHTML += '</tr>';
+            
+            // Add data rows (up to 3)
+            const maxRows = Math.min(4, data.length);
+            for (let i = 1; i < maxRows; i++) {
+                previewHTML += '<tr>';
+                for (let j = 0; j < headers.length; j++) {
+                    const value = data[i][j] || '';
+                    previewHTML += `<td>${value}</td>`;
+                }
+                previewHTML += '</tr>';
+            }
+            
+            previewHTML += '</table>';
+            
+            // Show full preview
+            previewElement.innerHTML = previewHTML;
+            previewContainer.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
