@@ -78,7 +78,7 @@
         "disclaimerText": "[Company Name] sells products for souvenir and collectible purposes only. Products may not be legal in some countries and [Company Name] strongly advises you not to take products where they are not permitted. [Company Name] does not accept any responsibility for any violation of customs regulations or local laws. All responsibility falls on the purchaser to determine the legal status of products in their country of residence. Any information provided is for educational purposes only."
     },
     "about": {
-        "title": "About Seed Collective",
+        "title": "About RealCharlieBravo Tactical Merc Shop",
         "subtitle": "Our Story and Mission",
         "image": "img/about.jpg",
         "description": "Founded in 2025, RealCharlieBravo Tactical Merc Shop is dedicated to bringing unique collectibles to enthusiasts around the world. We carefully curate our collections to ensure only the highest quality items reach our customers.",
