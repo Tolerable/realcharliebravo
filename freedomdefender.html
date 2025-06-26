@@ -485,7 +485,15 @@
             // Check wave completion
             checkWaveCompletion();
         }
-            if (!target.parentNode) return;
+
+		function updateAccuracy() {
+			const accuracy = shots > 0 ? Math.round((hits / shots) * 100) : 0;
+			// You can add this to display accuracy if you want:
+			document.getElementById('accuracy').textContent = accuracy + '%';
+		}
+		
+		function targetEscaped(target) {
+			if (!target.parentNode) return;
             
             escaped++;
             health -= Math.max(5, 10 - wave); // Lose more health in early waves
