@@ -8,20 +8,20 @@
         "logo": "img/logo.jpg",
         "heroBackground": "img/hero-bg.jpg",
         "socialPreview": "",
-        "showHeroText": true,
-        "email": "contact@example.com",
+        "showHeroText": false,
+        "email": "contact@realcharliebravo.com",
         "socialLinks": [
             {
                 "name": "Discord",
-                "url": "https://discord.gg/yourcollective"
+                "url": "https://discord.gg/BravoGang"
             },
             {
                 "name": "YouTube",
-                "url": "https://youtube.com/@yourchannel"
+                "url": "https://youtube.com/@RealCharlieBravo"
             },
             {
-                "name": "Instagram",
-                "url": "https://instagram.com/yourhandle"
+                "name": "X",
+                "url": "https://x.com/RealCBravo"
             }
         ],
         "copyright": "© 2025 RealCharlieBravo. All rights reserved."
@@ -165,13 +165,13 @@
     },
     "showFooterFriendLinks": true,
     "advanced": {
-        "enableShop": false,
+        "enableShop": true,
         "enableLocalStorage": true,
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
         "analyticsId": "",
-        "orderEmail": "orders@example.com",
-        "enableAgeCheck": false,
+        "orderEmail": "orders@realcharliebravo.com",
+        "enableAgeCheck": true,
         "ageCheckMinimum": 21,
         "ageRedirectUrl": "https://www.google.com"
     }
