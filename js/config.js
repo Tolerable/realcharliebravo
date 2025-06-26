@@ -116,7 +116,7 @@
             "product-1750962404314": {
                 "id": "product-1750962404314",
                 "name": "Anti Nazi- Crossed Out Swastika Embroidered Patch",
-                "type": "Premium Collection",
+                "type": "Anti-Nazi",
                 "status": "available",
                 "delivery": "digital",
                 "digitalContent": "https://www.angryyoungandpoor.com/store/pc/Anti-Nazi-Crossed-Out-Swastika-Embroidered-Patch-p40421.htm",
@@ -140,7 +140,7 @@
                 "name": "American Flag Lapel Pin",
                 "type": "American-Flag",
                 "status": "available",
-                "delivery": "digital",
+                "delivery": "physical",
                 "digitalContent": "https://www.agentgearusa.com/product/american-flag-lapel-pin/",
                 "image": "product5.jpg",
                 "additionalImages": [],
