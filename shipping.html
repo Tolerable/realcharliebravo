@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Policy - RealCharlieBravo Tactical Merc Shop</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="base-styles.css">
+    <script src="config.js"></script>
+    <script>
+        // Apply configuration on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.siteConfig) {
+                // Apply colors
+                document.documentElement.style.setProperty('--primary-color', window.siteConfig.colors.primary);
+                document.documentElement.style.setProperty('--secondary-color', window.siteConfig.colors.secondary);
+                document.documentElement.style.setProperty('--tertiary-color', window.siteConfig.colors.tertiary);
+                document.documentElement.style.setProperty('--highlight-color', window.siteConfig.colors.highlight);
+                document.documentElement.style.setProperty('--alert-color', window.siteConfig.colors.alert);
+                document.documentElement.style.setProperty('--background-color', window.siteConfig.colors.background);
+                document.documentElement.style.setProperty('--text-color', window.siteConfig.colors.text);
+                
+                // Apply fonts
+                document.documentElement.style.setProperty('--font-heading', window.siteConfig.fonts.heading);
+                document.documentElement.style.setProperty('--font-body', window.siteConfig.fonts.body);
+                
+                // Update site name and contact info
+                document.querySelector('.site-title').textContent = window.siteConfig.site.name;
+                document.querySelector('.header-logo').src = window.siteConfig.site.logo;
+                document.querySelector('.contact-email').textContent = window.siteConfig.site.email;
+                document.querySelector('.contact-email').href = 'mailto:' + window.siteConfig.site.email;
+                document.querySelector('.copyright').innerHTML = window.siteConfig.site.copyright;
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="background"></div>
+    
+    <header>
+        <div class="container">
+            <div class="header-container">
+                <div class="logo-container">
+                    <a href="index.html" class="logo-link">
+                        <img src="img/logo.jpg" alt="RealCharlieBravo Tactical Merc Shop" class="header-logo">
+                        <h1 class="site-title">TACTICAL MERC SHOP</h1>
+                    </a>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="index.html#products">Collections</a></li>
+                        <li><a href="freedomdefender.html">Freedom Defender</a></li>
+                        <li><a href="index.html#about">About</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-content">
+        <div class="container">
+            <h1 style="text-align: center; font-family: var(--font-heading); font-size: 3rem; margin-bottom: 40px; text-transform: uppercase; color: var(--highlight-color); text-shadow: 3px 3px 0 var(--tertiary-color), -3px -3px 0 var(--primary-color); letter-spacing: 2px;">Shipping Policy</h1>
+            
+            <div style="background: rgba(10, 14, 23, 0.8); border-radius: 15px; padding: 30px; margin-bottom: 50px; border: 2px solid var(--primary-color); box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);">
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem; margin-top: 0;">1. Shipping Information</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">At RealCharlieBravo Tactical Merc Shop, we aim to provide the best possible shipping experience for our customers. Since our products are unique tactical collectibles, shipping details are determined on a per-order basis to ensure the most appropriate shipping method is used for your valuable items.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">2. Order Processing</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">When you place an order through our website, you will receive an email confirmation with your order details. Our team will then contact you directly to discuss shipping options, costs, and estimated delivery timeframes based on your location and the items ordered.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">3. Shipping Methods</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">We offer various shipping methods depending on your location and preferences. These may include:</p>
+                <ul style="margin-bottom: 15px; margin-left: 30px; color: var(--text-color);">
+                    <li style="margin-bottom: 5px;">Standard shipping</li>
+                    <li style="margin-bottom: 5px;">Express shipping</li>
+                    <li style="margin-bottom: 5px;">Local pickup (where available)</li>
+                </ul>
+                <p style="margin-bottom: 15px; color: var(--text-color);">The shipping method available to you will be discussed during the order process, and costs will be determined based on your chosen method.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">4. Shipping Costs</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">Shipping costs are not included in the product prices shown on our website. The cost will vary based on:</p>
+                <ul style="margin-bottom: 15px; margin-left: 30px; color: var(--text-color);">
+                    <li style="margin-bottom: 5px;">Package weight and dimensions</li>
+                    <li style="margin-bottom: 5px;">Shipping destination</li>
+                    <li style="margin-bottom: 5px;">Selected shipping method</li>
+                    <li style="margin-bottom: 5px;">Insurance options</li>
+                </ul>
+                <p style="margin-bottom: 15px; color: var(--text-color);">We will provide you with a detailed breakdown of shipping costs before finalizing your order.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">5. Delivery Timeframes</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">Delivery times will vary depending on your location and the chosen shipping method. We strive to provide realistic delivery estimates and will communicate these to you during the order process.</p>
+                <p style="margin-bottom: 15px; color: var(--text-color);">Please note that delivery times are estimates and may be affected by factors outside our control, such as customs clearance, inclement weather, or local delivery conditions.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">6. Tracking Information</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">For shipments with tracking available, we will provide you with tracking information once your order has been shipped. This allows you to monitor the progress of your delivery.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">7. Packaging</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">All orders are carefully packaged to ensure they arrive in perfect condition. We use discrete, secure packaging to protect your privacy and the integrity of your collectibles.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">8. International Shipping</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">For international orders, please note that:</p>
+                <ul style="margin-bottom: 15px; margin-left: 30px; color: var(--text-color);">
+                    <li style="margin-bottom: 5px;">You may be responsible for import duties, taxes, and customs clearance fees</li>
+                    <li style="margin-bottom: 5px;">Delivery times may be longer due to customs processing</li>
+                    <li style="margin-bottom: 5px;">Some countries have restrictions on certain items, and it is your responsibility to ensure that your order complies with all local laws and regulations</li>
+                </ul>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">9. Order Issues</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">If you experience any issues with your shipment, such as damage or non-delivery, please contact us immediately at <a href="mailto:contact@realcharliebravo.com" class="contact-email" style="color: var(--secondary-color); text-decoration: none;">contact@realcharliebravo.com</a> with your order details so we can address the situation promptly.</p>
+                
+                <h2 style="color: var(--secondary-color); font-family: var(--font-heading); margin: 30px 0 15px; font-size: 1.6rem;">10. Contact Us</h2>
+                <p style="margin-bottom: 15px; color: var(--text-color);">If you have any questions about our shipping policy or need assistance with a specific order, please contact us at <a href="mailto:contact@realcharliebravo.com" class="contact-email" style="color: var(--secondary-color); text-decoration: none;">contact@realcharliebravo.com</a>.</p>
+                
+                <p style="margin-bottom: 15px; color: var(--text-color);"><strong>Last updated:</strong> January 2025</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>RealCharlieBravo</h3>
+                    <ul>
+                        <li><a href="index.html#products">Collections</a></li>
+                        <li><a href="freedomdefender.html">Freedom Defender</a></li>
+                        <li><a href="index.html#about">About</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Policies</h3>
+                    <ul>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="shipping.html">Shipping Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><a href="mailto:contact@realcharliebravo.com">E-Mail Us</a></li>
+                        <li><a href="https://discord.gg/BravoGang">Discord</a></li>
+                        <li><a href="https://youtube.com/@RealCharlieBravo">YouTube</a></li>
+                        <li><a href="https://x.com/RealCBravo">X</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Visit Our Friends</h3>
+                    <ul>
+                        <li><a href="https://www.strainnavigator.com/" target="_blank">StrainNavigator</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2025 RealCharlieBravo.com All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
