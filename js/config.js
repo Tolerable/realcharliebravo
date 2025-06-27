@@ -67,9 +67,9 @@
             "behavior": "float"
         },
         "backgroundAudio": {
-            "enabled": false,
-            "file": "",
-            "volume": 0.3
+            "enabled": true,
+            "file": "audio/background.mp3",
+            "volume": 0.5
         }
     },
     "strainTree": {
@@ -237,7 +237,7 @@
         "checkoutMethod": "email",
         "externalCheckoutUrl": "",
         "analyticsId": "",
-        "orderEmail": "orders@example.com",
+        "orderEmail": "contact@realcharliebravo.com",
         "enableAgeCheck": true,
         "ageCheckMinimum": 21,
         "ageRedirectUrl": "https://www.google.com"
