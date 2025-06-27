@@ -615,208 +615,111 @@ function addLegalDisclaimer(disclaimerText, siteName) {
 
 // Apply site configuration from config.js or preview config
 function applySiteConfig() {
-   const siteConfig = window.siteConfig;
-   
-   // Set page title and meta tags
-   document.title = siteConfig.site.name;
-   document.querySelector('meta[name="title"]').setAttribute('content', siteConfig.site.name);
-   document.querySelector('meta[name="description"]').setAttribute('content', siteConfig.site.tagline);
-   
-   // Set Open Graph meta tags
-   const currentUrl = window.location.href.split('?')[0]; // Remove query parameters
-   document.querySelector('meta[property="og:url"]').setAttribute('content', currentUrl);
-   document.querySelector('meta[property="og:title"]').setAttribute('content', siteConfig.site.name);
-   document.querySelector('meta[property="og:description"]').setAttribute('content', siteConfig.site.tagline);
-   
-   // Set Twitter meta tags
-   document.querySelector('meta[name="twitter:url"]').setAttribute('content', currentUrl);
-   document.querySelector('meta[name="twitter:title"]').setAttribute('content', siteConfig.site.name);
-   document.querySelector('meta[name="twitter:description"]').setAttribute('content', siteConfig.site.tagline);
+  const siteConfig = window.siteConfig;
+  
+  // Set page title and meta tags
+  document.title = siteConfig.site.name;
+  document.querySelector('meta[name="title"]').setAttribute('content', siteConfig.site.name);
+  document.querySelector('meta[name="description"]').setAttribute('content', siteConfig.site.tagline);
+  
+  // REMOVED ALL SOCIAL MEDIA META TAG CODE - USING HARDCODED ONES
 
-   // FIXED: Set social preview image properly
-   if (siteConfig.site.socialPreview) {
-       let socialImagePath = siteConfig.site.socialPreview;
-       let fullImageUrl;
-       
-       // Get the base URL without any filename
-       const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
-       
-       if (socialImagePath.startsWith('http://') || socialImagePath.startsWith('https://')) {
-           // Already a full URL
-           fullImageUrl = socialImagePath;
-       } else if (socialImagePath.startsWith('/')) {
-           // Absolute path from domain root
-           fullImageUrl = window.location.origin + socialImagePath;
-       } else {
-           // Relative path - construct full URL
-           if (socialImagePath.startsWith('img/')) {
-               // Has img/ prefix
-               fullImageUrl = baseUrl + '/' + socialImagePath;
-           } else {
-               // Just filename - assume it's in root directory
-               fullImageUrl = baseUrl + '/' + socialImagePath;
-           }
-       }
-       
-       console.log('Setting social image URL to:', fullImageUrl);
-       
-       // Set both Open Graph and Twitter meta tags
-       const ogImageTag = document.querySelector('meta[property="og:image"]');
-       const twitterImageTag = document.querySelector('meta[name="twitter:image"]');
-       
-       if (ogImageTag) {
-           ogImageTag.setAttribute('content', fullImageUrl);
-       } else {
-           // Create the tag if it doesn't exist
-           const newOgImageTag = document.createElement('meta');
-           newOgImageTag.setAttribute('property', 'og:image');
-           newOgImageTag.setAttribute('content', fullImageUrl);
-           document.head.appendChild(newOgImageTag);
-       }
-       
-       if (twitterImageTag) {
-           twitterImageTag.setAttribute('content', fullImageUrl);
-       } else {
-           // Create the tag if it doesn't exist
-           const newTwitterImageTag = document.createElement('meta');
-           newTwitterImageTag.setAttribute('name', 'twitter:image');
-           newTwitterImageTag.setAttribute('content', fullImageUrl);
-           document.head.appendChild(newTwitterImageTag);
-       }
-       
-       // Also add additional Open Graph image properties that some platforms require
-       const ogImageSecureUrl = document.querySelector('meta[property="og:image:secure_url"]');
-       if (!ogImageSecureUrl && fullImageUrl.startsWith('https://')) {
-           const secureUrlTag = document.createElement('meta');
-           secureUrlTag.setAttribute('property', 'og:image:secure_url');
-           secureUrlTag.setAttribute('content', fullImageUrl);
-           document.head.appendChild(secureUrlTag);
-       }
-       
-       // Add image dimensions if known or set defaults
-       const ogImageWidth = document.querySelector('meta[property="og:image:width"]');
-       const ogImageHeight = document.querySelector('meta[property="og:image:height"]');
-       
-       if (!ogImageWidth) {
-           const widthTag = document.createElement('meta');
-           widthTag.setAttribute('property', 'og:image:width');
-           widthTag.setAttribute('content', '1200'); // Standard social media width
-           document.head.appendChild(widthTag);
-       }
-       
-       if (!ogImageHeight) {
-           const heightTag = document.createElement('meta');
-           heightTag.setAttribute('property', 'og:image:height');
-           heightTag.setAttribute('content', '630'); // Standard social media height
-           document.head.appendChild(heightTag);
-       }
-       
-       // Add image type
-       const ogImageType = document.querySelector('meta[property="og:image:type"]');
-       if (!ogImageType) {
-           const typeTag = document.createElement('meta');
-           typeTag.setAttribute('property', 'og:image:type');
-           typeTag.setAttribute('content', 'image/jpeg'); // Assume JPEG, change if needed
-           document.head.appendChild(typeTag);
-       }	   
-    }
-
-	// Add legal disclaimer if enabled
-	if (siteConfig.legal && siteConfig.legal.enableDisclaimer && siteConfig.legal.disclaimerText) {
-		addLegalDisclaimer(siteConfig.legal.disclaimerText, siteConfig.site.name);
-	}
-   
-   // Fix logo path handling
-   let logoPath = siteConfig.site.logo;
-   if (logoPath && !logoPath.startsWith('img/') && !logoPath.startsWith('/') && !logoPath.startsWith('http')) {
-       logoPath = 'img/' + logoPath;
+   // Add legal disclaimer if enabled
+   if (siteConfig.legal && siteConfig.legal.enableDisclaimer && siteConfig.legal.disclaimerText) {
+   	addLegalDisclaimer(siteConfig.legal.disclaimerText, siteConfig.site.name);
    }
-   
-   // Set site logo and name
-   document.getElementById('site-logo').src = logoPath;
-   document.getElementById('site-logo').alt = siteConfig.site.name;
-   document.getElementById('site-name').textContent = siteConfig.site.name;
-   
-   // Set footer content
-   document.getElementById('footerSiteName').textContent = siteConfig.site.name;
-   document.getElementById('copyright-text').textContent = siteConfig.site.copyright;
-   
-   // Handle hero section
-   setupHeroSection();
-   
-   // Check if shopping cart is enabled
-   const shopEnabled = siteConfig.advanced && siteConfig.advanced.enableShop !== false; // Default to true if not set
-   
-   // Set cart terminology only if shop is enabled
-   if (shopEnabled) {
-       document.getElementById('cartTitle').textContent = `Your ${siteConfig.terminology.cartTerm}`;
-       document.getElementById('cartEmptyMessage').textContent = `Your ${siteConfig.terminology.cartTerm} is empty`;
-   }
-   
-   // Set navigation
-   const mainNav = document.getElementById('main-navigation');
-   mainNav.innerHTML = ''; // Clear existing navigation
-   
-   // Add navigation items from config
-   siteConfig.navigation.forEach(item => {
-       const li = document.createElement('li');
-       li.innerHTML = `<a href="${item.url}">${item.name}</a>`;
-       mainNav.appendChild(li);
-   });
-   
-   // Add cart link only if shop is enabled
-   if (shopEnabled) {
-       const cartLi = document.createElement('li');
-       cartLi.id = 'cart-nav-item';
-       cartLi.innerHTML = `
-           <a href="#cart" id="cart-link">
-               <span>${siteConfig.terminology.cartTerm}</span>
-               <span id="cart-count" class="cart-badge">0</span>
-           </a>
-       `;
-       mainNav.appendChild(cartLi);
-   }
-   
-   // CHANGED: Obfuscate email in contact links
-   const contactLinks = document.getElementById('contact-links');
-   contactLinks.innerHTML = '';
-   
-   const emailParts = siteConfig.site.email.split('@');
-   const emailItem = document.createElement('li');
-   emailItem.innerHTML = `<a href="#" onclick="window.location.href='mailto:' + '${emailParts[0]}' + '@' + '${emailParts[1]}'; return false;">${emailParts[0]}[at]${emailParts[1]}</a>`;
-   contactLinks.appendChild(emailItem);
-   
-   // Add social links if they exist
-   if (siteConfig.site.socialLinks && Array.isArray(siteConfig.site.socialLinks)) {
-       siteConfig.site.socialLinks.forEach(socialLink => {
-           if (socialLink.name && socialLink.url) {
-               const socialItem = document.createElement('li');
-               socialItem.innerHTML = `<a href="${socialLink.url}" target="_blank">${socialLink.name}</a>`;
-               contactLinks.appendChild(socialItem);
-           }
-       });
-   }
-   
-   // Set footer nav
-   const footerNav = document.getElementById('footerNav');
-   footerNav.innerHTML = ''; // Clear existing navigation
-   siteConfig.navigation.forEach(item => {
-       const li = document.createElement('li');
-       li.innerHTML = `<a href="${item.url}">${item.name}</a>`;
-       footerNav.appendChild(li);
-   });
-   
-   // Apply custom styles from config
-   applyCustomStyles();
-   
-   // Set pack options and checkout button text only if shop is enabled
-   if (shopEnabled) {
-       document.getElementById('packOptionsTitle').textContent = `Select ${siteConfig.terminology.packTerm} Size:`;
-       document.getElementById('checkoutBtn').textContent = `Checkout`;
-   }
-   
-   // Update filter buttons
-   updateFilterButtons();
+  
+  // Fix logo path handling
+  let logoPath = siteConfig.site.logo;
+  if (logoPath && !logoPath.startsWith('img/') && !logoPath.startsWith('/') && !logoPath.startsWith('http')) {
+      logoPath = 'img/' + logoPath;
+  }
+  
+  // Set site logo and name
+  document.getElementById('site-logo').src = logoPath;
+  document.getElementById('site-logo').alt = siteConfig.site.name;
+  document.getElementById('site-name').textContent = siteConfig.site.name;
+  
+  // Set footer content
+  document.getElementById('footerSiteName').textContent = siteConfig.site.name;
+  document.getElementById('copyright-text').textContent = siteConfig.site.copyright;
+  
+  // Handle hero section
+  setupHeroSection();
+  
+  // Check if shopping cart is enabled
+  const shopEnabled = siteConfig.advanced && siteConfig.advanced.enableShop !== false; // Default to true if not set
+  
+  // Set cart terminology only if shop is enabled
+  if (shopEnabled) {
+      document.getElementById('cartTitle').textContent = `Your ${siteConfig.terminology.cartTerm}`;
+      document.getElementById('cartEmptyMessage').textContent = `Your ${siteConfig.terminology.cartTerm} is empty`;
+  }
+  
+  // Set navigation
+  const mainNav = document.getElementById('main-navigation');
+  mainNav.innerHTML = ''; // Clear existing navigation
+  
+  // Add navigation items from config
+  siteConfig.navigation.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${item.url}">${item.name}</a>`;
+      mainNav.appendChild(li);
+  });
+  
+  // Add cart link only if shop is enabled
+  if (shopEnabled) {
+      const cartLi = document.createElement('li');
+      cartLi.id = 'cart-nav-item';
+      cartLi.innerHTML = `
+          <a href="#cart" id="cart-link">
+              <span>${siteConfig.terminology.cartTerm}</span>
+              <span id="cart-count" class="cart-badge">0</span>
+          </a>
+      `;
+      mainNav.appendChild(cartLi);
+  }
+  
+  // CHANGED: Obfuscate email in contact links
+  const contactLinks = document.getElementById('contact-links');
+  contactLinks.innerHTML = '';
+  
+  const emailParts = siteConfig.site.email.split('@');
+  const emailItem = document.createElement('li');
+  emailItem.innerHTML = `<a href="#" onclick="window.location.href='mailto:' + '${emailParts[0]}' + '@' + '${emailParts[1]}'; return false;">${emailParts[0]}[at]${emailParts[1]}</a>`;
+  contactLinks.appendChild(emailItem);
+  
+  // Add social links if they exist
+  if (siteConfig.site.socialLinks && Array.isArray(siteConfig.site.socialLinks)) {
+      siteConfig.site.socialLinks.forEach(socialLink => {
+          if (socialLink.name && socialLink.url) {
+              const socialItem = document.createElement('li');
+              socialItem.innerHTML = `<a href="${socialLink.url}" target="_blank">${socialLink.name}</a>`;
+              contactLinks.appendChild(socialItem);
+          }
+      });
+  }
+  
+  // Set footer nav
+  const footerNav = document.getElementById('footerNav');
+  footerNav.innerHTML = ''; // Clear existing navigation
+  siteConfig.navigation.forEach(item => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${item.url}">${item.name}</a>`;
+      footerNav.appendChild(li);
+  });
+  
+  // Apply custom styles from config
+  applyCustomStyles();
+  
+  // Set pack options and checkout button text only if shop is enabled
+  if (shopEnabled) {
+      document.getElementById('packOptionsTitle').textContent = `Select ${siteConfig.terminology.packTerm} Size:`;
+      document.getElementById('checkoutBtn').textContent = `Checkout`;
+  }
+  
+  // Update filter buttons
+  updateFilterButtons();
 }
 
 function initializeAgeCheck() {
